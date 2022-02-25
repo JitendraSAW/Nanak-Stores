@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include nanak_customization *.css
+recursive-include nanak_customization *.csv
+recursive-include nanak_customization *.html
+recursive-include nanak_customization *.ico
+recursive-include nanak_customization *.js
+recursive-include nanak_customization *.json
+recursive-include nanak_customization *.md
+recursive-include nanak_customization *.png
+recursive-include nanak_customization *.py
+recursive-include nanak_customization *.svg
+recursive-include nanak_customization *.txt
+recursive-exclude nanak_customization *.pyc
