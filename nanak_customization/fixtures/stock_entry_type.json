@@ -1,0 +1,13 @@
+[
+ {
+  "add_to_transit": 0,
+  "docstatus": 0,
+  "doctype": "Stock Entry Type",
+  "modified": "2022-03-03 17:27:56.028467",
+  "name": "Stock Reservation",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "purpose": "Material Transfer"
+ }
+]

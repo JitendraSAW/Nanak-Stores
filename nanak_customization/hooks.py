@@ -31,11 +31,16 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Sales Order" : "custom_script/sales_order.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+fixtures = [
+	{"dt":"Custom Field", "filters": [["name", "in", ["Sales Invoice-picklist_reference","Stock Entry-picklist_item_reference","Stock Entry-nanak_pick_list","Warehouse-warehouse","Warehouse-is_reserve_warehouse","Sales Order Item-picked_qty","Sales Invoice Item-pick_list_details","Sales Invoice Item-nanak_pick_list"]]]},
+	{"dt":"Stock Entry Type", "filters": [["name", "in", ["Stock Reservation"]]]},
+	{"dt":"Client Script", "filters": [["name", "in", ["Sales Invoice-Form"]]]}
 
+	]
 # Home Pages
 # ----------
 
@@ -84,6 +89,9 @@ app_license = "MIT"
 # override_doctype_class = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
+
+
+
 
 # Document Events
 # ---------------
