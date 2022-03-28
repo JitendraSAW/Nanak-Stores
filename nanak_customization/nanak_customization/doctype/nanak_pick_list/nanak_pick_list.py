@@ -15,7 +15,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.utils import get_fetch_values
 from frappe.utils import cint, flt
 from erpnext.controllers.accounts_controller import get_taxes_and_charges
-from console import console
+# from console import console
 from erpnext.stock.doctype.item.item import get_item_defaults
 from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
 from erpnext.stock.utils import get_stock_balance
@@ -270,7 +270,7 @@ class NanakPickList(SellingController):
 				item.item_tax_amount = 0.0
 
 	def calculate_totals(self):
-		console(self.doc.get("taxes")).log()
+		# console(self.doc.get("taxes")).log()
 		self.doc.grand_total = flt(self.doc.get("taxes")[-1].total) + flt(self.doc.rounding_adjustment) \
 			if self.doc.get("taxes") else flt(self.doc.net_total)
 
@@ -285,7 +285,7 @@ class NanakPickList(SellingController):
 		else:
 			self.doc.taxes_and_charges_added = self.doc.taxes_and_charges_deducted = 0.0
 			for tax in self.doc.get("taxes"):
-				console(tax.category).log()
+				# console(tax.category).log()
 				if tax.category in ["Valuation and Total", "Total"]:
 					if tax.add_deduct_tax == "Add":
 						self.doc.taxes_and_charges_added += flt(tax.tax_amount_after_discount_amount)
@@ -343,7 +343,7 @@ class NanakPickList(SellingController):
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
 
 	def validate(self):
-		console(self).log()
+		# console(self).log()
 		self.validate_posting_time()
 		super(NanakPickList, self).validate()
 		self.set_status()
