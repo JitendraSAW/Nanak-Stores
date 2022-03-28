@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from erpnext.stock.doctype.batch.batch import get_batch_no,get_batches
+# from console import console
 
 class QueryTesting(Document):
 	pass
@@ -84,6 +85,7 @@ def get_godown_wise(product_id):
 		actual_data = frappe.db.sql("""
 		select bn.warehouse,bn.actual_qty,bn.item_code,wh.is_reserve_warehouse,wh.warehouse as og_warehouse from `tabBin` bn inner join `tabWarehouse` wh on wh.name = bn.warehouse where bn.actual_qty > 0 and bn.item_code = %s
 		""",product_id,as_dict = 1)
+		# console(actual_data).log()
 		raw_batch_data = []
 		warehouse_data = []
 		for item in actual_data:
@@ -95,12 +97,17 @@ def get_godown_wise(product_id):
 				raw_batch_data.append(b)
 		for item in raw_batch_data:
 			if item.is_reserve_warehouse:
+				# console(item).log()
+				
+				
 				if any(d['warehouse'] == item.og_warehouse and d['batch_id'] == item.batch_id for d in warehouse_data):
+					# console("modify reserve").log()
+					
 					for data in warehouse_data:
 						if data['warehouse'] == item.og_warehouse:
 							data['reserved'] = item.qty
 				else:
-					
+					# console("append reserve").log()
 					warehouse_data.append({
 					"warehouse":item.og_warehouse,
 					"qty":0,
@@ -108,12 +115,21 @@ def get_godown_wise(product_id):
 					"batch_id":item.batch_id
 				})
 			else:
-				warehouse_data.append({
-					"warehouse":item.warehouse,
-					"qty":item.qty,
-					"batch_id":item.batch_id,
-					"reserved":0
-				})
+				if any(d['warehouse'] == item.warehouse and d['batch_id'] == item.batch_id for d in warehouse_data):
+					# console("modify qty").log()
+					# console(item).log()
+					for data in warehouse_data:
+						if data['warehouse'] == item.warehouse:
+							data['qty'] = item.qty
+				else:
+					# console("append qty").log()
+					warehouse_data.append({
+						"warehouse":item.warehouse,
+						"qty":item.qty,
+						"batch_id":item.batch_id,
+						"reserved":0
+					})
+			# console(warehouse_data).log()
 
 
 		# frappe.throw(str(raw_batch_data))
