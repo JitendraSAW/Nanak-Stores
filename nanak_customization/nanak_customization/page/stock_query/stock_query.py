@@ -116,7 +116,7 @@ def get_godown_wise(product_id):
 				})
 
 
-		frappe.throw(str(raw_batch_data))
+		# frappe.throw(str(raw_batch_data))
 		return warehouse_data,sn_bn
 
 	else:
