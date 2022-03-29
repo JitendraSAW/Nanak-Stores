@@ -32,7 +32,20 @@ erpnext.StockQuery = class StockQuery {
 								"disabled": ["!=", 1]
 							}
 						}
-					}
+					},
+				},
+				// {
+				// 	label: __('Refresh'),
+				// 	fieldname: 'refresh',
+				// 	fieldtype: 'Button',
+					
+				// 	click: async () => {
+				// 		this.fetch_and_render()
+				// 	},
+					
+				// },
+				{
+					fieldtype: 'Column Break'
 				},
 				{
 					label: __('Item Name'),
@@ -44,13 +57,31 @@ erpnext.StockQuery = class StockQuery {
 					
 				},
 				{
-					fieldtype: 'Column Break'
-				},
-				{
 					label: __('Item Group'),
 					fieldname: 'item_group',
 					fieldtype: 'Link',
 					options: 'Item Group',
+					change: () => {},
+					read_only:1
+					
+				},
+				{
+					fieldtype: 'Column Break'
+				},
+				{
+					label: __('Stock Category'),
+					fieldname: 'stock_category',
+					fieldtype: 'Data',
+					
+					change: () => {},
+					read_only:1
+					
+				},
+				{
+					label: __('Company Code'),
+					fieldname: 'company_code',
+					fieldtype: 'Data',
+					
 					change: () => {},
 					read_only:1
 					
@@ -92,7 +123,7 @@ erpnext.StockQuery = class StockQuery {
 				},
 				{
 					label: __('HSN'),
-					fieldname: 'hsn',
+					fieldname: 'gst_hsn_code',
 					fieldtype: 'Data',
 					
 					change: () => {},
@@ -124,7 +155,7 @@ erpnext.StockQuery = class StockQuery {
 					fieldname: 'sales'
 				},
 				{
-					fieldtype: 'Column Break'
+					fieldtype: 'Section Break'
 				},
 				{
 					label:"Purchase",
@@ -140,7 +171,7 @@ erpnext.StockQuery = class StockQuery {
 					fieldname: 'pending_po'
 				},
 				{
-					fieldtype: 'Column Break'
+					fieldtype: 'Section Break'
 				},
 				{
 					label:"Pending SO",
@@ -151,6 +182,11 @@ erpnext.StockQuery = class StockQuery {
 			body: this.page.body
 		});
 		this.form.make();
+		$(this.form.wrapper)
+				.find(".input-with-feedback")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
 	}
 	fetch_and_render(){
 		// console.log(this.form.get_value("item_code"));
@@ -167,11 +203,13 @@ erpnext.StockQuery = class StockQuery {
 		// console.log(this.form.fields[1])
 		var res = await get_header_list(item_code)
 		// console.log(res)
+		this.form.set_value("stock_category",res.message[0].stock_category)
+		this.form.set_value("company_code",res.message[0].company_code)
 		this.form.set_value("item_group",res.message[0].item_group)
 		this.form.set_value("item_name",res.message[0].item_name)
 		this.form.set_value("price",res.message[0].price)
-		this.form.set_value("tax",18.00)
-		this.form.set_value("hsn",2345345345)
+		this.form.set_value("tax",res.message[0].item_tax_template)
+		this.form.set_value("gst_hsn_code",res.message[0].gst_hsn_code)
 		this.form.set_value("qty",res.message[0].qty)
 	}
 	async set_warehouse_stock(item_code){
@@ -205,6 +243,7 @@ erpnext.StockQuery = class StockQuery {
 				html_content +=
 			'<tr>' +
 				'<td>' + i.warehouse +'</td>' +
+				'<td></td>' +
 				'<td>' + i.qty +'</td>' +
 				'<td>' + i.reserved +' </td>' +
 				
@@ -239,7 +278,7 @@ erpnext.StockQuery = class StockQuery {
 			var link = 'item/' + encodeURI(res.message[i].name)
 			html_content +=
 			'<tr>' +
-				'<td><a href=' + link.toString() + '>' + res.message[i].name + '</a></td>' +
+				'<td><a onclick="frappe.utils.copy_to_clipboard(\'' + res.message[i].name + '\')">' + res.message[i].name + '</a></td>' +
 				'<td>' + res.message[i].item_name +'</td>' +
 				'<td>' + res.message[i].qty +'</td>' +
 			'</tr>';
