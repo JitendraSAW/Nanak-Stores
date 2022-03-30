@@ -198,8 +198,8 @@ def get_regional_address_details(party_details, doctype, company):
 	if isinstance(party_details, string_types):
 		party_details = json.loads(party_details)
 		party_details = frappe._dict(party_details)
-		console("1st Check").log()
-		console(party_details).log()
+		# console("1st Check").log()
+		# console(party_details).log()
 
 	update_party_details(party_details, doctype)
 
@@ -213,8 +213,8 @@ def get_regional_address_details(party_details, doctype, company):
 	if doctype in ("Sales Invoice", "Nanak Pick List", "Sales Order"):
 		master_doctype = "Sales Taxes and Charges Template"
 		tax_template_by_category = get_tax_template_based_on_category(master_doctype, company, party_details)
-		console("tax_template_by_category").log()
-		console(tax_template_by_category).log()
+		# console("tax_template_by_category").log()
+		# console(tax_template_by_category).log()
 
 	elif doctype in ("Purchase Invoice", "Purchase Order", "Purchase Receipt"):
 		master_doctype = "Purchase Taxes and Charges Template"
@@ -232,11 +232,11 @@ def get_regional_address_details(party_details, doctype, company):
 		and party_details.company_gstin[:2] != party_details.place_of_supply[:2]) or (doctype in ("Purchase Invoice",
 		"Purchase Order", "Purchase Receipt") and party_details.supplier_gstin and party_details.supplier_gstin[:2] != party_details.place_of_supply[:2])):
 		default_tax = get_tax_template(master_doctype, company, 1, party_details.company_gstin[:2])
-		console("if default_tax").log()
-		console(default_tax).log()
+		# console("if default_tax").log()
+		# console(default_tax).log()
 	else:
-		console("else default_tax").log()
-		console(default_tax).log()
+		# console("else default_tax").log()
+		# console(default_tax).log()
 		default_tax = get_tax_template(master_doctype, company, 0, party_details.company_gstin[:2])
 
 	if not default_tax:
