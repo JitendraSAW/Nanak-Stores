@@ -37,7 +37,7 @@ def get_same_category(product_id):
 		# if want to omit product mouse
 		ext = " and i.name != '" + product_id + "'"
 
-		product_group = frappe.db.get_value('Item', product_id, 'item_group')
+		product_group = frappe.db.get_value('Item', product_id, 'stock_category')
 
 		data = frappe.db.sql("""
 			select
@@ -48,7 +48,7 @@ def get_same_category(product_id):
 			from
 			`tabItem` i
 			where
-			i.item_group = '%s'
+			i.stock_category = '%s'
 			%s
 			
 		"""% (product_group, ext), as_dict = True)

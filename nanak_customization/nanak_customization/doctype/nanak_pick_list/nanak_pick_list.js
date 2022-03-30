@@ -28,6 +28,8 @@ frappe.provide("erpnext.stock.delivery_note");
 frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on("Nanak Pick List", {
+	
+
 	//clear warehouse button
 	clear_warehouse:function(frm) {
 		frm.set_value("set_warehouse","")
@@ -60,6 +62,17 @@ frappe.ui.form.on("Nanak Pick List", {
 			}
 		});
 
+		frm.set_query('transporter', function(doc) {
+			
+				return {
+					filters: {
+						"is_transporter": 1
+						
+					}
+				}
+			
+		});
+
 		frm.set_query('cost_center', 'items', function(doc, cdt, cdn) {
 			if (erpnext.is_perpetual_inventory_enabled(doc.company)) {
 				return {
@@ -78,7 +91,14 @@ frappe.ui.form.on("Nanak Pick List", {
 	},
 	customer:function(frm){
 		if(frm.doc.customer){
+			
+			get_party_details(frm)
+			get_tax_template(frm)
+			// set_taxes_from_address(frm)
+			// set_taxes(frm)
+
 			frm.trigger("get_customer_outstanding")
+			
 		}
 		
 	},
@@ -357,6 +377,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 							frappe.run_serially([
 								() => {
 									var d = locals[cdt][cdn];
+									console.log(me)
 									me.add_taxes_from_item_tax_template(d.item_tax_rate);
 									if (d.free_item_data) {
 										me.apply_product_discount(d);
@@ -863,3 +884,189 @@ erpnext.show_serial_batch_selector = function (frm, d, callback, on_close, show_
 	});
 }
 
+
+var get_party_details = function(frm, method, args, callback) {
+	console.log("party details")
+	if (!method) {
+		method = "erpnext.accounts.party.get_party_details";
+	}
+
+	if (args) {
+		if (in_list(['Sales Invoice', 'Sales Order', 'Nanak Pick List'], frm.doc.doctype)) {
+			if (frm.doc.company_address && (!args.company_address)) {
+				args.company_address = frm.doc.company_address;
+			}
+		}
+
+		if (in_list(['Purchase Invoice', 'Purchase Order', 'Purchase Receipt'], frm.doc.doctype)) {
+			if (frm.doc.shipping_address && (!args.shipping_address)) {
+				args.shipping_address = frm.doc.shipping_address;
+			}
+		}
+	}
+
+	if (!args) {
+		if ((frm.doctype != "Purchase Order" && frm.doc.customer)
+			|| (frm.doc.party_name && in_list(['Quotation', 'Opportunity'], frm.doc.doctype))) {
+
+			let party_type = "Customer";
+			if (frm.doc.quotation_to && frm.doc.quotation_to === "Lead") {
+				party_type = "Lead";
+			}
+
+			args = {
+				party: frm.doc.customer || frm.doc.party_name,
+				party_type: party_type,
+				price_list: frm.doc.selling_price_list
+			};
+		} else if (frm.doc.supplier) {
+			args = {
+				party: frm.doc.supplier,
+				party_type: "Supplier",
+				bill_date: frm.doc.bill_date,
+				price_list: frm.doc.buying_price_list
+			};
+		}
+
+		if (in_list(['Sales Invoice', 'Sales Order', 'Nanak Pick List'], frm.doc.doctype)) {
+			if (!args) {
+				args = {
+					party: frm.doc.customer || frm.doc.party_name,
+					party_type: 'Customer'
+				}
+			}
+			if (frm.doc.company_address && (!args.company_address)) {
+				args.company_address = frm.doc.company_address;
+			}
+
+			if (frm.doc.shipping_address_name &&(!args.shipping_address_name)) {
+				args.shipping_address_name = frm.doc.shipping_address_name;
+			}
+		}
+
+		if (in_list(['Purchase Invoice', 'Purchase Order', 'Purchase Receipt'], frm.doc.doctype)) {
+			if (!args) {
+				args = {
+					party: frm.doc.supplier,
+					party_type: 'Supplier'
+				}
+			}
+
+			if (frm.doc.shipping_address && (!args.shipping_address)) {
+				args.shipping_address = frm.doc.shipping_address;
+			}
+		}
+
+		if (args) {
+			args.posting_date = frm.doc.posting_date || frm.doc.transaction_date;
+			args.fetch_payment_terms_template = cint(!frm.doc.ignore_default_payment_terms_template);
+		}
+	}
+	if (!args || !args.party) return;
+
+	if (frappe.meta.get_docfield(frm.doc.doctype, "taxes")) {
+		if (!erpnext.utils.validate_mandatory(frm, "Posting / Transaction Date",
+			args.posting_date, args.party_type=="Customer" ? "customer": "supplier")) return;
+	}
+
+	if (!erpnext.utils.validate_mandatory(frm, "Company", frm.doc.company, args.party_type=="Customer" ? "customer": "supplier")) {
+		return;
+	}
+
+	args.currency = frm.doc.currency;
+	args.company = frm.doc.company;
+	args.doctype = frm.doc.doctype;
+	frappe.call({
+		method: method,
+		args: args,
+		callback: function(r) {
+			if (r.message) {
+				frm.supplier_tds = r.message.supplier_tds;
+				frm.updating_party_details = true;
+				frappe.run_serially([
+					() => frm.set_value(r.message),
+					() => {
+						frm.updating_party_details = false;
+						if (callback) callback();
+						frm.refresh();
+						erpnext.utils.add_item(frm);
+					}
+				]);
+			}
+		}
+	});
+}
+
+
+
+
+
+
+
+frappe.ui.form.on("Nanak Pick List", {
+	onload:function(frm){
+		frappe.call({
+			"method":"nanak_customization.nanak_customization.regional_utils.get_gstins_for_company",
+			"args":{
+				
+			},
+			"freeze":true,
+			"callback":function(r){
+				console.log(r.message[0][0])
+				if(r.message){
+					frm.set_value("company_gstin",r.message[0][0])
+					frm.refresh_field("company_gstin")
+				}
+				
+			}
+		})
+	},
+	company_address: function(frm) {
+		frm.trigger('get_tax_template');
+	},
+	shipping_address: function(frm) {
+		frm.trigger('get_tax_template');
+	},
+	supplier_address: function(frm) {
+		frm.trigger('get_tax_template');
+	},
+	tax_category: function(frm) {
+		frm.trigger('get_tax_template');
+	},
+	customer_address: function(frm) {
+		frm.trigger('get_tax_template');
+	},
+	get_tax_template: function(frm) {
+		if (!frm.doc.company) return;
+
+		let party_details = {
+			'shipping_address': frm.doc.shipping_address || '',
+			'shipping_address_name': frm.doc.shipping_address_name || '',
+			'customer_address': frm.doc.customer_address || '',
+			'supplier_address': frm.doc.supplier_address,
+			'customer': frm.doc.customer,
+			'supplier': frm.doc.supplier,
+			'supplier_gstin': frm.doc.supplier_gstin,
+			'company_gstin': frm.doc.company_gstin,
+			'tax_category': frm.doc.tax_category
+		};
+
+		frappe.call({
+			method: 'nanak_customization.nanak_customization.regional_utils.get_regional_address_details',
+			args: {
+				party_details: JSON.stringify(party_details),
+				doctype: frm.doc.doctype,
+				company: frm.doc.company
+			},
+			debounce: 2000,
+			callback: function(r) {
+				console.log(r)
+				if(r.message) {
+					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
+					frm.set_value('taxes', r.message.taxes);
+					frm.set_value('place_of_supply', r.message.place_of_supply);
+				}
+			}
+		});
+	}
+});

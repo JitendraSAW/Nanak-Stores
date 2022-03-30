@@ -668,8 +668,8 @@ def make_sales_invoice(source_name, target_doc=None):
 	doc = frappe.get_doc('Nanak Pick List', source_name)
 
 	to_make_invoice_qty_map = {}
-	returned_qty_map = get_returned_qty_map(source_name)
-	invoiced_qty_map = get_invoiced_qty_map(source_name)
+	# returned_qty_map = get_returned_qty_map(source_name)
+	# invoiced_qty_map = get_invoiced_qty_map(source_name)
 
 	def set_missing_values(source, target):
 		target.update_stock = 1
@@ -694,7 +694,7 @@ def make_sales_invoice(source_name, target_doc=None):
 			target.update(get_fetch_values("Sales Invoice", 'company_address', target.company_address))
 
 	def update_item(source_doc, target_doc, source_parent):
-		target_doc.qty = to_make_invoice_qty_map[source_doc.name]
+		# target_doc.qty = to_make_invoice_qty_map[source_doc.name]
 		target_doc.warehouse = source_parent.set_warehouse
 		
 
@@ -702,25 +702,25 @@ def make_sales_invoice(source_name, target_doc=None):
 			target_doc.serial_no = get_delivery_note_serial_no(source_doc.item_code,
 				target_doc.qty, source_parent.name)
 
-	def get_pending_qty(item_row):
-		pending_qty = item_row.qty - invoiced_qty_map.get(item_row.name, 0)
+	# def get_pending_qty(item_row):
+	# 	pending_qty = item_row.qty - invoiced_qty_map.get(item_row.name, 0)
 
-		returned_qty = 0
-		if returned_qty_map.get(item_row.name, 0) > 0:
-			returned_qty = flt(returned_qty_map.get(item_row.name, 0))
-			returned_qty_map[item_row.name] -= pending_qty
+	# 	returned_qty = 0
+	# 	if returned_qty_map.get(item_row.name, 0) > 0:
+	# 		returned_qty = flt(returned_qty_map.get(item_row.name, 0))
+	# 		returned_qty_map[item_row.name] -= pending_qty
 
-		if returned_qty:
-			if returned_qty >= pending_qty:
-				pending_qty = 0
-				returned_qty -= pending_qty
-			else:
-				pending_qty -= returned_qty
-				returned_qty = 0
+	# 	if returned_qty:
+	# 		if returned_qty >= pending_qty:
+	# 			pending_qty = 0
+	# 			returned_qty -= pending_qty
+	# 		else:
+	# 			pending_qty -= returned_qty
+	# 			returned_qty = 0
 
-		to_make_invoice_qty_map[item_row.name] = pending_qty
+	# 	to_make_invoice_qty_map[item_row.name] = pending_qty
 
-		return pending_qty
+	# 	return pending_qty
 
 	doc = get_mapped_doc("Nanak Pick List", source_name, {
 		"Nanak Pick List": {
@@ -743,8 +743,7 @@ def make_sales_invoice(source_name, target_doc=None):
 				"cost_center": "cost_center"
 			},
 			"field_no_map":["warehouse"],
-			"postprocess": update_item,
-			"filter": lambda d: get_pending_qty(d) <= 0 if not doc.get("is_return") else get_pending_qty(d) > 0
+			"postprocess": update_item
 		},
 		"Sales Taxes and Charges": {
 			"doctype": "Sales Taxes and Charges",

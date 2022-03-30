@@ -15,6 +15,7 @@
   "customer_name",
   "column_break1",
   "company",
+  "company_gstin",
   "posting_date",
   "posting_time",
   "set_posting_time",
@@ -29,6 +30,7 @@
   "contact_info",
   "shipping_address_name",
   "shipping_address",
+  "place_of_supply",
   "contact_person",
   "contact_display",
   "contact_mobile",
@@ -1275,12 +1277,22 @@
    "fieldname": "clear_warehouse",
    "fieldtype": "Button",
    "label": "Clear Warehouse"
+  },
+  {
+   "fieldname": "place_of_supply",
+   "fieldtype": "Data",
+   "label": "place_of_supply"
+  },
+  {
+   "fieldname": "company_gstin",
+   "fieldtype": "Data",
+   "label": "Company GSTIN"
   }
  ],
  "icon": "fa fa-truck",
  "is_submittable": 1,
  "links": [],
- "modified": "2022-03-26 11:53:52.573056",
+ "modified": "2022-03-30 23:49:55.264426",
  "modified_by": "Administrator",
  "module": "Nanak Customization",
  "name": "Nanak Pick List",
