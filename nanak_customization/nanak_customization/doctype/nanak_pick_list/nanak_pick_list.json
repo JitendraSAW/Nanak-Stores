@@ -13,6 +13,8 @@
   "naming_series",
   "customer",
   "customer_name",
+  "is_pos",
+  "pos_profile",
   "column_break1",
   "company",
   "company_gstin",
@@ -100,6 +102,8 @@
   "rounded_total",
   "in_words",
   "disable_rounded_total",
+  "payments_section",
+  "payments",
   "terms_section_break",
   "tc_name",
   "terms",
@@ -382,8 +386,7 @@
    "fieldtype": "Link",
    "label": "Billing Address Name",
    "options": "Address",
-   "print_hide": 1,
-   "read_only": 1
+   "print_hide": 1
   },
   {
    "fieldname": "tax_id",
@@ -1286,13 +1289,39 @@
   {
    "fieldname": "company_gstin",
    "fieldtype": "Data",
-   "label": "Company GSTIN"
+   "label": "Company GSTIN",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_pos",
+   "fieldtype": "Check",
+   "label": "is_pos"
+  },
+  {
+   "depends_on": "is_pos",
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "depends_on": "is_pos",
+   "fieldname": "payments_section",
+   "fieldtype": "Section Break",
+   "label": "Payments"
+  },
+  {
+   "fieldname": "payments",
+   "fieldtype": "Table",
+   "label": "Payments",
+   "options": "Nanak Pick List Payments"
   }
  ],
  "icon": "fa fa-truck",
  "is_submittable": 1,
  "links": [],
- "modified": "2022-03-30 23:49:55.264426",
+ "modified": "2022-04-01 22:13:41.848299",
  "modified_by": "Administrator",
  "module": "Nanak Customization",
  "name": "Nanak Pick List",

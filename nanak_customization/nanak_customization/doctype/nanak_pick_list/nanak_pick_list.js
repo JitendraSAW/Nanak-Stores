@@ -28,6 +28,27 @@ frappe.provide("erpnext.stock.delivery_note");
 frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on("Nanak Pick List", {
+	is_pos:function(frm){
+		if(frm.doc.is_pos){
+			frappe.db.get_doc('Mode of Payment', 'Cash')
+			.then(doc => {
+				console.log(doc)
+				if(doc){
+					var newrow = frappe.model.add_child(frm.doc, "Nanak Pick List Payments", "payments");
+					newrow.mode_of_payment = doc.mode_of_payment
+					newrow.type = doc.type
+					newrow.account = doc.accounts[0].default_account
+					refresh_field("payments");
+					""
+				}
+			})
+	
+
+
+refresh_field("items");
+
+		}
+	},
 	
 
 	//clear warehouse button
@@ -93,7 +114,7 @@ frappe.ui.form.on("Nanak Pick List", {
 		if(frm.doc.customer){
 			
 			get_party_details(frm)
-			get_tax_template(frm)
+			// get_tax_template(frm)
 			// set_taxes_from_address(frm)
 			// set_taxes(frm)
 
@@ -109,7 +130,7 @@ frappe.ui.form.on("Nanak Pick List", {
 	//Get Customer Outsatnding on customer selection
 	get_customer_outstanding(frm){
 		var end_date = frappe.datetime.add_months(cur_frm.doc.posting_date, -3);
-		console.log(end_date)
+		// console.log(end_date)
 
 		frappe.call({
 			method: 'frappe.client.get_list',
@@ -123,7 +144,7 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			callback: function(r) {
 				if (!r.exc) {
-					console.log(r.message)
+					// console.log(r.message)
 					if(!r.message.length > 0){
 						frappe.msgprint("This Customer Does not have any transaction in past 180 days.")
 					}
@@ -162,7 +183,7 @@ frappe.ui.form.on("Nanak Pick List Item", {
 						"set_warehouse":frm.doc.set_warehouse
 					},
 					"callback":function(res){
-						console.log(res)
+						// console.log(res)
 						if(res.message == 0){
 							row.item_code = ""
 							frm.refresh_field("items")
@@ -177,7 +198,7 @@ frappe.ui.form.on("Nanak Pick List Item", {
 						"set_warehouse":frm.doc.set_warehouse
 					},
 					"callback":function(res){
-						console.log(res)
+						// console.log(res)
 						if(res.message == 0){
 							row.item_code = ""
 							frm.refresh_field("items")
@@ -206,7 +227,7 @@ frappe.ui.form.on("Nanak Pick List Item", {
 					
 				},
 				"callback":function(res){
-					console.log(res)
+					// console.log(res)
 					if(res.message){
 						frappe.db.set_value("Nanak Pick List Item",row.name,"dereserved",1)
 						frappe.msgprint("Item has been dereserved!")
@@ -377,7 +398,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 							frappe.run_serially([
 								() => {
 									var d = locals[cdt][cdn];
-									console.log(me)
+									// console.log(me)
 									me.add_taxes_from_item_tax_template(d.item_tax_rate);
 									if (d.free_item_data) {
 										me.apply_product_discount(d);
@@ -886,7 +907,7 @@ erpnext.show_serial_batch_selector = function (frm, d, callback, on_close, show_
 
 
 var get_party_details = function(frm, method, args, callback) {
-	console.log("party details")
+	// console.log("party details")
 	if (!method) {
 		method = "erpnext.accounts.party.get_party_details";
 	}
@@ -1012,7 +1033,7 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			"freeze":true,
 			"callback":function(r){
-				console.log(r.message[0][0])
+				// console.log(r.message[0][0])
 				if(r.message){
 					frm.set_value("company_gstin",r.message[0][0])
 					frm.refresh_field("company_gstin")
@@ -1060,7 +1081,7 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			debounce: 2000,
 			callback: function(r) {
-				console.log(r)
+				// console.log(r)
 				if(r.message) {
 					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
 					frm.set_value('taxes', r.message.taxes);

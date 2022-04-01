@@ -749,6 +749,10 @@ def make_sales_invoice(source_name, target_doc=None):
 			"doctype": "Sales Taxes and Charges",
 			"add_if_empty": True
 		},
+		# "Nanak Pick List Payments": {
+		# 	"doctype": "Sales Invoice Payment",
+		# 	"amount":"amount"
+		# },
 		"Sales Team": {
 			"doctype": "Sales Team",
 			"field_map": {
