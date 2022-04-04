@@ -28,6 +28,7 @@ frappe.provide("erpnext.stock.delivery_note");
 frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on("Nanak Pick List", {
+	
 	is_pos:function(frm){
 		if(frm.doc.is_pos){
 			frappe.db.get_doc('Mode of Payment', 'Cash')
@@ -167,8 +168,22 @@ refresh_field("items");
 });
 
 frappe.ui.form.on("Nanak Pick List Item", {
-	//Item popup to select
-
+	// Item popup to select
+	items_add(frm){
+		// console.log("add item")
+		// frappe.call({
+		// 	"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
+		// 	"args":{
+		// 		"customer":frm.doc.customer,
+		// 		"company":frm.doc.company,
+		// 		"extra_amount":frm.doc.grand_total
+				
+		// 	},
+		// 	"callback":function(res){
+		// 		console.log(res)
+		// 	}
+		// })
+	},
 	item_code:function(frm,cdt,cdn){
 		var row = locals[cdt][cdn]
 		if(row.item_code){
@@ -352,6 +367,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 					args: {
 						doc: me.frm.doc,
 						args: {
+							overwrite_warehouse:false,
 							item_code: item.item_code,
 							barcode: item.barcode,
 							serial_no: item.serial_no,
