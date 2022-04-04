@@ -34,16 +34,15 @@ erpnext.StockQuery = class StockQuery {
 						}
 					},
 				},
-				// {
-				// 	label: __('Refresh'),
-				// 	fieldname: 'refresh',
-				// 	fieldtype: 'Button',
+				{
+					label: __('UOM'),
+					fieldname: 'stock_uom',
+					fieldtype: 'Data',
 					
-				// 	click: async () => {
-				// 		this.fetch_and_render()
-				// 	},
 					
-				// },
+					read_only:1
+					
+				},
 				{
 					fieldtype: 'Column Break'
 				},
@@ -93,7 +92,7 @@ erpnext.StockQuery = class StockQuery {
 				{
 					label: __('Price'),
 					fieldname: 'price',
-					fieldtype: 'Float',
+					fieldtype: 'Currency',
 					
 					change: () => {},
 					read_only:1
@@ -203,6 +202,7 @@ erpnext.StockQuery = class StockQuery {
 		// console.log(this.form.fields[1])
 		var res = await get_header_list(item_code)
 		// console.log(res)
+		this.form.set_value("stock_uom",res.message[0].stock_uom)
 		this.form.set_value("stock_category",res.message[0].stock_category)
 		this.form.set_value("company_code",res.message[0].company_code)
 		this.form.set_value("item_group",res.message[0].item_group)

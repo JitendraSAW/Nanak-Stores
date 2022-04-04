@@ -14,20 +14,20 @@ class QueryTesting(Document):
 def get_header_data(item_code):
 		# item_code = 'Glass'
 
-		warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+		pricelist = frappe.db.get_single_value("Nanak Standard Settings", "stock_query_pricelist")
 
 		data = frappe.db.sql("""
 			select
 			i.item_name,
-			i.item_group,i.stock_category,i.company_code,it.item_tax_template,
-			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = 'Standard Selling' limit 1) as price,
+			i.item_group,i.stock_category,i.company_code,it.item_tax_template,i.stock_uom,
+			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = %s limit 1) as price,
 			i.gst_hsn_code,
 			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
 			`tabItem` i inner join `tabItem Tax` it on i.name = it.parent
 			where
 			i.name = %s
-		""", (item_code), as_dict = True)
+		""", (pricelist,item_code), as_dict = True)
 
 		return data
 
