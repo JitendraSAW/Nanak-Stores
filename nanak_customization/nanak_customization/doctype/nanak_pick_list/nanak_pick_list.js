@@ -281,46 +281,46 @@ var change_color_code = function (frm) {
 erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 	//override tranasction.js methods
 	setup_quality_inspection: function() {
-		if(!in_list(["Delivery Note", "Sales Invoice", "Purchase Receipt", "Purchase Invoice","Nanak Pick List"], this.frm.doc.doctype)) {
-			return;
-		}
+		// if(!in_list(["Delivery Note", "Sales Invoice", "Purchase Receipt", "Purchase Invoice","Nanak Pick List"], this.frm.doc.doctype)) {
+		// 	return;
+		// }
 
-		const me = this;
-		if (!this.frm.is_new() && this.frm.doc.docstatus === 0) {
-			this.frm.add_custom_button(__("Quality Inspection(s)"), () => {
-				me.make_quality_inspection();
-			}, __("Create"));
-			this.frm.page.set_inner_btn_group_as_primary(__('Create'));
-		}
+		// const me = this;
+		// if (!this.frm.is_new() && this.frm.doc.docstatus === 0) {
+		// 	this.frm.add_custom_button(__("Quality Inspection(s)"), () => {
+		// 		me.make_quality_inspection();
+		// 	}, __("Create"));
+		// 	this.frm.page.set_inner_btn_group_as_primary(__('Create'));
+		// }
 
-		const inspection_type = in_list(["Purchase Receipt", "Purchase Invoice"], this.frm.doc.doctype)
-			? "Incoming" : "Outgoing";
+		// const inspection_type = in_list(["Purchase Receipt", "Purchase Invoice"], this.frm.doc.doctype)
+		// 	? "Incoming" : "Outgoing";
 
-		let quality_inspection_field = this.frm.get_docfield("items", "quality_inspection");
-		quality_inspection_field.get_route_options_for_new_doc = function(row) {
-			if(me.frm.is_new()) return;
-			return {
-				"inspection_type": inspection_type,
-				"reference_type": me.frm.doc.doctype,
-				"reference_name": me.frm.doc.name,
-				"item_code": row.doc.item_code,
-				"description": row.doc.description,
-				"item_serial_no": row.doc.serial_no ? row.doc.serial_no.split("\n")[0] : null,
-				"batch_no": row.doc.batch_no
-			}
-		}
+		// let quality_inspection_field = this.frm.get_docfield("items", "quality_inspection");
+		// quality_inspection_field.get_route_options_for_new_doc = function(row) {
+		// 	if(me.frm.is_new()) return;
+		// 	return {
+		// 		"inspection_type": inspection_type,
+		// 		"reference_type": me.frm.doc.doctype,
+		// 		"reference_name": me.frm.doc.name,
+		// 		"item_code": row.doc.item_code,
+		// 		"description": row.doc.description,
+		// 		"item_serial_no": row.doc.serial_no ? row.doc.serial_no.split("\n")[0] : null,
+		// 		"batch_no": row.doc.batch_no
+		// 	}
+		// }
 
-		this.frm.set_query("quality_inspection", "items", function(doc, cdt, cdn) {
-			let d = locals[cdt][cdn];
-			return {
-				filters: {
-					docstatus: 1,
-					inspection_type: inspection_type,
-					reference_name: doc.name,
-					item_code: d.item_code
-				}
-			}
-		});
+		// this.frm.set_query("quality_inspection", "items", function(doc, cdt, cdn) {
+		// 	let d = locals[cdt][cdn];
+		// 	return {
+		// 		filters: {
+		// 			docstatus: 1,
+		// 			inspection_type: inspection_type,
+		// 			reference_name: doc.name,
+		// 			item_code: d.item_code
+		// 		}
+		// 	}
+		// });
 	},
 
 	item_code: function(doc, cdt, cdn) {
@@ -357,7 +357,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 							serial_no: item.serial_no,
 							batch_no: item.batch_no,
 							set_warehouse: me.frm.doc.set_warehouse,
-							warehouse: item.warehouse,
+							warehouse: me.frm.doc.set_warehouse,
 							customer: me.frm.doc.customer || me.frm.doc.party_name,
 							quotation_to: me.frm.doc.quotation_to,
 							supplier: me.frm.doc.supplier,
@@ -395,6 +395,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 
 					callback: function(r) {
 						if(!r.exc) {
+							console.log(r)
 							frappe.run_serially([
 								() => {
 									var d = locals[cdt][cdn];
