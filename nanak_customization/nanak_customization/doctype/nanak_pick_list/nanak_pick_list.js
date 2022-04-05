@@ -2,6 +2,8 @@
 // For license information, please see license.txt
 
 
+
+
 {% include 'erpnext/selling/sales_common.js' %};
 
 
@@ -113,7 +115,14 @@ refresh_field("items");
 	},
 	customer:function(frm){
 		if(frm.doc.customer){
-			
+			// frappe.call({
+			// 	"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_credit_days",
+			// 	"args":{
+			// 		"customer":frm.doc.customer,
+			// 		"company":frm.doc.company,
+			// 		"date":frm.doc.posting_date
+			// 	}
+			// })
 			get_party_details(frm)
 			// get_tax_template(frm)
 			// set_taxes_from_address(frm)
@@ -169,21 +178,21 @@ refresh_field("items");
 
 frappe.ui.form.on("Nanak Pick List Item", {
 	// Item popup to select
-	items_add(frm){
-		// console.log("add item")
-		// frappe.call({
-		// 	"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
-		// 	"args":{
-		// 		"customer":frm.doc.customer,
-		// 		"company":frm.doc.company,
-		// 		"extra_amount":frm.doc.grand_total
+	// items_add(frm){
+	// 	console.log("add item")
+	// 	frappe.call({
+	// 		"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
+	// 		"args":{
+	// 			"customer":frm.doc.customer,
+	// 			"company":frm.doc.company,
+	// 			"extra_amount":frm.doc.grand_total
 				
-		// 	},
-		// 	"callback":function(res){
-		// 		console.log(res)
-		// 	}
-		// })
-	},
+	// 		},
+	// 		"callback":function(res){
+	// 			console.log(res)
+	// 		}
+	// 	})
+	// },
 	item_code:function(frm,cdt,cdn){
 		var row = locals[cdt][cdn]
 		if(row.item_code){
@@ -401,7 +410,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 							weight_uom: item.weight_uom,
 							manufacturer: item.manufacturer,
 							stock_uom: item.stock_uom,
-							pos_profile: cint(me.frm.doc.is_pos) ? me.frm.doc.pos_profile : '',
+							pos_profile: '',
 							cost_center: item.cost_center,
 							tax_category: me.frm.doc.tax_category,
 							item_tax_template: item.item_tax_template,
