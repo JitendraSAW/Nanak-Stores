@@ -407,7 +407,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 							plc_conversion_rate: me.frm.doc.plc_conversion_rate,
 							company: me.frm.doc.company,
 							order_type: me.frm.doc.order_type,
-							is_pos: cint(me.frm.doc.is_pos),
+							is_pos: 0,
 							is_return: cint(me.frm.doc.is_return),
 							is_subcontracted: me.frm.doc.is_subcontracted,
 							transaction_date: me.frm.doc.transaction_date || me.frm.doc.posting_date,
