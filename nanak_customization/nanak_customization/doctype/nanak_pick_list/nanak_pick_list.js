@@ -115,38 +115,25 @@ refresh_field("items");
 	},
 	customer:function(frm){
 		if(frm.doc.customer){
-			// frappe.call({
-			// 	"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_credit_days",
-			// 	"args":{
-			// 		"customer":frm.doc.customer,
-			// 		"company":frm.doc.company,
-			// 		"date":frm.doc.posting_date
-			// 	}
-			// })
 			get_party_details(frm)
-			// get_tax_template(frm)
-			// set_taxes_from_address(frm)
-			// set_taxes(frm)
-
+			// frm.trigger("get_customer_credit_days")
 			frm.trigger("get_customer_outstanding")
-			
 		}
-		
 	},
 
 	print_without_amount: function(frm) {
 		erpnext.stock.delivery_note.set_print_hide(frm.doc);
 	},
+	
 	//Get Customer Outsatnding on customer selection
 	get_customer_outstanding(frm){
-		var end_date = frappe.datetime.add_months(cur_frm.doc.posting_date, -3);
-		// console.log(end_date)
+		var end_date = frappe.datetime.add_months(cur_frm.doc.posting_date, -3);	
 
 		frappe.call({
 			method: 'frappe.client.get_list',
 			args: {
 				'doctype': 'Sales Invoice',
-				'filters':[['customer','=',frm.doc.customer],['docstatus','=',1],['outstanding_amount','>',0],['posting_date','>',end_date]],
+				'filters':[['customer','=',frm.doc.customer],['docstatus','=',1],['posting_date','>',end_date]],
 				'fields': [
 					'name',
 					
@@ -161,6 +148,27 @@ refresh_field("items");
 				}
 			}
 		});
+		
+	},
+
+	get_customer_credit_days(frm){
+		if(frm.doc.customer){
+			frappe.call({
+				"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_credit_days",
+				"args":{
+					"customer":frm.doc.customer,
+					"company":frm.doc.company,
+					"date":frm.doc.posting_date
+				},
+				"callback":function(res){
+					console.log(res)
+					if(res.message){
+						frappe.msgprint("Customer Has Outstanding Amount of "+ res.message[0]['outstand'] +" according to credit days")
+					}
+
+				}
+			})
+		}
 		
 	},
 
@@ -190,6 +198,11 @@ frappe.ui.form.on("Nanak Pick List Item", {
 	// 		},
 	// 		"callback":function(res){
 	// 			console.log(res)
+	// 			if(res.message){					
+	// 				frappe.msgprint("Credit limit has been crossed for customer "+frm.doc.customer+" ("+res.message[0]+"/"+res.message[1]+")")
+	// 				frm.doc.items.splice(frm.doc.items[frm.doc.items.length], 1)
+	// 				frm.refresh_field('items')
+	// 			}
 	// 		}
 	// 	})
 	// },
