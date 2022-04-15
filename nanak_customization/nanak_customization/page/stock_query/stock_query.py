@@ -24,7 +24,7 @@ def get_header_data(item_code):
 			i.gst_hsn_code,
 			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
-			`tabItem` i inner join `tabItem Tax` it on i.name = it.parent
+			`tabItem` i left join `tabItem Tax` it on i.name = it.parent
 			where
 			i.name = %s
 		""", (pricelist,item_code), as_dict = True)
@@ -44,7 +44,7 @@ def get_same_category(product_id):
 			i.name,
 			i.item_name,
 			i.item_group,
-			(select sle.qty_after_transaction from `tabStock Ledger Entry` sle where sle.item_code = i.name and sle.warehouse = 'shop - QM' order by sle.creation desc limit 1) as qty
+			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
 			`tabItem` i
 			where

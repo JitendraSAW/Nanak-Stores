@@ -201,7 +201,7 @@ erpnext.StockQuery = class StockQuery {
 	async set_header_values(item_code){
 		// console.log(this.form.fields[1])
 		var res = await get_header_list(item_code)
-		// console.log(res)
+		console.log(res)
 		this.form.set_value("stock_uom",res.message[0].stock_uom)
 		this.form.set_value("stock_category",res.message[0].stock_category)
 		this.form.set_value("company_code",res.message[0].company_code)
