@@ -19,6 +19,9 @@ erpnext.StockQuery = class StockQuery {
 		this.form = new frappe.ui.FieldGroup({
 			fields: [
 				{
+					fieldtype: 'Section Break'
+				},
+				{
 					label: __('Item Code'),
 					fieldname: 'item_code',
 					fieldtype: 'Link',
@@ -33,6 +36,9 @@ erpnext.StockQuery = class StockQuery {
 							}
 						}
 					},
+				},
+				{
+					fieldtype: 'Section Break'
 				},
 				{
 					label: __('UOM'),
@@ -87,8 +93,7 @@ erpnext.StockQuery = class StockQuery {
 				},
 				{
 					fieldtype: 'Column Break'
-				},
-				
+				},				
 				{
 					label: __('Price'),
 					fieldname: 'price',
@@ -97,8 +102,7 @@ erpnext.StockQuery = class StockQuery {
 					change: () => {},
 					read_only:1
 					
-				},
-				
+				},				
 				{
 					label: __('Qty'),
 					fieldname: 'qty',
