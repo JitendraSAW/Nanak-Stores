@@ -38,6 +38,18 @@ erpnext.StockQuery = class StockQuery {
 					},
 				},
 				{
+					fieldtype: 'Column Break'
+				},
+				{
+					label: __('Item Name'),
+					fieldname: 'item_name',
+					fieldtype: 'Data',
+					
+					change: () => {},
+					read_only:1
+					
+				},
+				{
 					fieldtype: 'Section Break'
 				},
 				{
@@ -52,15 +64,7 @@ erpnext.StockQuery = class StockQuery {
 				{
 					fieldtype: 'Column Break'
 				},
-				{
-					label: __('Item Name'),
-					fieldname: 'item_name',
-					fieldtype: 'Data',
-					
-					change: () => {},
-					read_only:1
-					
-				},
+				
 				{
 					label: __('Item Group'),
 					fieldname: 'item_group',
@@ -125,6 +129,10 @@ erpnext.StockQuery = class StockQuery {
 					
 				},
 				{
+					fieldtype: 'Column Break'
+				},
+				
+				{
 					label: __('HSN'),
 					fieldname: 'gst_hsn_code',
 					fieldtype: 'Data',
@@ -185,8 +193,37 @@ erpnext.StockQuery = class StockQuery {
 			body: this.page.body
 		});
 		this.form.make();
+		$(this.form.wrapper).css({
+			backgroundColor: '#bdd9f2'
+		});
+		
 		$(this.form.wrapper)
-				.find(".input-with-feedback")
+				.find(".input-with-feedback[data-fieldname='item_code']")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='item_name']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='stock_category']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='stock_uom']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='tax']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='qty']").find(".form-group").find(".control-input-wrapper").find(".control-value")
 				.css({
 					backgroundColor: '#cfcfcf'
 				});
@@ -222,7 +259,7 @@ erpnext.StockQuery = class StockQuery {
 		var res = await get_warehouse_stock(item_code)
 		console.log(res)
 		var html_content = '';
-		html_content += '<div class="frappe-card"><h4>Warehouse Wise Stock</h4><table class="table"><thead><tr><th>Warehouse</th><th>Batch/Serial No</th><th>Open Qty</th><th>Reserve Qty</th></tr></thead><tbody>';
+		html_content += '<div class="frappe-card"><h4>Stock</h4><table class="table"><thead><tr><th>Warehouse</th><th>Batch/Serial No</th><th>Open Qty</th><th>Reserve Qty</th></tr></thead><tbody>';
 		res.message[0].forEach(i =>{
 			console.log(i)
 			if(res.message[1].has_serial_no){
@@ -268,7 +305,7 @@ erpnext.StockQuery = class StockQuery {
 		// console.log(res.message)
 		var html_content = '';
 		html_content += '<div class="frappe-card">' +
-			'<h4>Similar Items</h4>' +
+			'<h4>Same Category Items</h4>' +
 			'<table class="table">' +
 			'<thead>' +
 			'<tr>' +
@@ -299,7 +336,7 @@ erpnext.StockQuery = class StockQuery {
 		var res = await get_sales_order(item_code)
 		var html_content = '';
 
-		html_content += '<div class="frappe-card"><h4>Past Sales</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
+		html_content += '<div class="frappe-card"><h4>Sales</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
 
 		for(var i in res.message){
 			var link = 'sales-invoice/' + encodeURI(res.message[i].parent)
@@ -323,7 +360,7 @@ erpnext.StockQuery = class StockQuery {
 
 		var html_content = '';
 
-		html_content += '<div class="frappe-card"><h4>Past Purchase</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
+		html_content += '<div class="frappe-card"><h4>Purchase</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
 
 		for(var i in res.message){
 			var link = 'purchase-invoice/' + encodeURI(res.message[i].parent)
@@ -347,7 +384,7 @@ erpnext.StockQuery = class StockQuery {
 
 		var html_content = '';
 
-		html_content += '<div class="frappe-card"><h4>Pending Sales</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
+		html_content += '<div class="frappe-card"><h4>Pending SO</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
 
 		for(var i in res.message){
 			var link = 'sales-order/' + encodeURI(res.message[i].parent)
@@ -371,7 +408,7 @@ erpnext.StockQuery = class StockQuery {
 
 		var html_content = '';
 
-		html_content += '<div class="frappe-card"><h4>Pending Purchase</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
+		html_content += '<div class="frappe-card"><h4>Pending PO</h4><table class="table"><thead><tr><th>Bill No</th><th>Bill Date</th><th>Party Name</th><th>Unit</th><th>Qty</th><th>Item Value</th></tr></thead><tbody>';
 
 		for(var i in res.message){
 			var link = 'purchase-order/' + encodeURI(res.message[i].parent)
