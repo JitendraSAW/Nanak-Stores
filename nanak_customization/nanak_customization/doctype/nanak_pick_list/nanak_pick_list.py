@@ -959,7 +959,8 @@ def make_sales_invoice(source_name, target_doc=None):
 		"Nanak Pick List": {
 			"doctype": "Sales Invoice",
 			"field_map": {
-				"is_return": "is_return"
+				"is_return": "is_return",
+				"po_no":"po_no"
 			},
 			"validation": {
 				"docstatus": ["=", 1]
