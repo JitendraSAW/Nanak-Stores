@@ -22,6 +22,7 @@ from erpnext.stock.get_item_details import get_conversion_factor, get_item_detai
 from erpnext.stock.get_item_details import get_bin_details
 from frappe.utils.user import get_users_with_role
 from frappe.utils import get_formatted_email
+import json
 
 
 
@@ -346,7 +347,19 @@ class NanakPickList(SellingController):
 
 	def validate(self):
 		# console(self).log()
-		
+
+		data = check_credit_limit(self.customer, self.company, True, self.grand_total)
+		# frappe.throw(str(data[3]))
+
+		if data[3] == 0:
+			if data[2]["customer_group"] < data[0]:
+				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
+			elif data[2]["customer"] < data[1]:
+				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
+		# else:
+		# 	name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
+ 		
 		self.validate_posting_time()
 		super(NanakPickList, self).validate()
 		self.set_status()
@@ -441,6 +454,9 @@ class NanakPickList(SellingController):
 		frappe.db.commit()
 
 	def on_submit(self):
+		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+		if name:
+			frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
 		# self.validate_packed_qty()
 
 		# Check for Approving Authority
@@ -599,18 +615,28 @@ def check_credit_limit(customer, company, ignore_outstanding_sales_order=True, e
 	if not credit_limit:
 		return
 
+	customers = frappe.db.sql("select name from `tabCustomer` where customer_group = (select customer_group from `tabCustomer` where name = %s)", (customer), as_dict = True)
+	group_outstanding = 0
+	for cust in customers:
+		group_outs = get_customer_outstanding(cust.name, company, ignore_outstanding_sales_order)
+		if group_outs:
+			group_outstanding = group_outstanding + group_outs
+
 	customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
 	
-	if float(extra_amount) > 0:
-		customer_outstanding += flt(extra_amount)
-	# frappe.msgprint(str(customer_outstanding))
+	customer_outstanding = flt(customer_outstanding) + flt(extra_amount)
+	group_outstanding = flt(group_outstanding) + flt(extra_amount)
+	# frappe.msgprint(str(customer_outstanding) + ' - ' + extra_amount + ' - ' + str(customer_extra))
 
-	if credit_limit > 0 and flt(customer_outstanding) > credit_limit:
+	if credit_limit['customer'] > 0 and (customer_outstanding > credit_limit['customer'] or group_outstanding > credit_limit['customer_group']):
 		# frappe.msgprint(_("Credit limit has been crossed for customer {0} ({1}/{2})")
 		# 	.format(customer, customer_outstanding, credit_limit))
-		allow_credit = frappe.get_value("Customer",customer,"allow_over_credit_")
+		allow_credit = frappe.get_value("Allow Credit Limit Item",{"customer": customer},"allow")
 
-		return (customer_outstanding,credit_limit,allow_credit)
+		if not allow_credit:
+			allow_credit = 0
+
+		return [group_outstanding,customer_outstanding,credit_limit,allow_credit]
 	else:
 		return 0
 
@@ -673,22 +699,42 @@ def get_credit_days(customer, company,date):
 			return out_standing_amount
 
 
+# def get_credit_limit(customer, company):
+# 	credit_limit = None
+
+# 	if customer:
+# 		credit_limit = frappe.db.get_value("Customer Credit Limit",
+# 			{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit')
+
+# 		if not credit_limit:
+# 			customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
+# 			credit_limit = frappe.db.get_value("Customer Credit Limit",
+# 				{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit')
+
+# 	if not credit_limit:
+# 		credit_limit = frappe.get_cached_value('Company',  company,  "credit_limit")
+
+# 	return flt(credit_limit)
+
 def get_credit_limit(customer, company):
-	credit_limit = None
+	credit_limit = {"customer":0, "customer_group":0}
 
 	if customer:
-		credit_limit = frappe.db.get_value("Customer Credit Limit",
-			{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit')
+		credit_limit['customer'] = flt(frappe.db.get_value("Customer Credit Limit",
+			{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit'))
 
-		if not credit_limit:
-			customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
-			credit_limit = frappe.db.get_value("Customer Credit Limit",
-				{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit')
+		customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
+		credit_limit['customer_group'] = flt(frappe.db.get_value("Customer Credit Limit",
+			{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit'))
+			
 
-	if not credit_limit:
-		credit_limit = frappe.get_cached_value('Company',  company,  "credit_limit")
+	# if not credit_limit.customer:
+	# 	credit_limit.customer = 0
 
-	return flt(credit_limit)
+	# if not credit_limit.customer_group:
+	# 	credit_limit.customer_group = 0
+
+	return credit_limit
 
 def get_customer_outstanding(customer, company, ignore_outstanding_sales_order=False, cost_center=None):
 	# Outstanding based on GL Entries
@@ -858,6 +904,7 @@ def make_sales_invoice(source_name, target_doc=None):
 			target.gst_category = "Registered Regular"
 		else:
 			target.gst_category = "Unregistered"
+		target.po_no = source.po_no
 		target.update_stock = 1
 		target.set_warehouse = frappe.db.get_value("Nanak Warehouse Table",{"warehouse":source.set_warehouse},"reserve_warehouse")
 		target.ignore_pricing_rule = 1
