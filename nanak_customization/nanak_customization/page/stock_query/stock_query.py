@@ -104,7 +104,7 @@ def get_godown_wise(product_id):
 					# console("modify reserve").log()
 					
 					for data in warehouse_data:
-						if data['warehouse'] == item.og_warehouse:
+						if data['warehouse'] == item.og_warehouse and data['batch_id'] == item.batch_id:
 							data['reserved'] = item.qty
 				else:
 					# console("append reserve").log()
@@ -119,7 +119,7 @@ def get_godown_wise(product_id):
 					# console("modify qty").log()
 					# console(item).log()
 					for data in warehouse_data:
-						if data['warehouse'] == item.warehouse:
+						if data['warehouse'] == item.warehouse and data['batch_id'] == item.batch_id:
 							data['qty'] = item.qty
 				else:
 					# console("append qty").log()

@@ -53,31 +53,6 @@ erpnext.StockQuery = class StockQuery {
 					fieldtype: 'Section Break'
 				},
 				{
-					label: __('UOM'),
-					fieldname: 'stock_uom',
-					fieldtype: 'Data',
-					
-					
-					read_only:1
-					
-				},
-				{
-					fieldtype: 'Column Break'
-				},
-				
-				{
-					label: __('Item Group'),
-					fieldname: 'item_group',
-					fieldtype: 'Link',
-					options: 'Item Group',
-					change: () => {},
-					read_only:1
-					
-				},
-				{
-					fieldtype: 'Column Break'
-				},
-				{
 					label: __('Stock Category'),
 					fieldname: 'stock_category',
 					fieldtype: 'Data',
@@ -87,6 +62,29 @@ erpnext.StockQuery = class StockQuery {
 					
 				},
 				{
+					label: __('Item Group'),
+					fieldname: 'item_group',
+					fieldtype: 'Link',
+					options: 'Item Group',
+					change: () => {},
+					read_only:1
+					
+				},
+				
+				{
+					fieldtype: 'Column Break'
+				},
+				
+				
+				{
+					fieldtype: 'Column Break'
+				},
+				
+				{
+					fieldtype: 'Column Break'
+				},
+				
+				{
 					label: __('Company Code'),
 					fieldname: 'company_code',
 					fieldtype: 'Data',
@@ -95,18 +93,6 @@ erpnext.StockQuery = class StockQuery {
 					read_only:1
 					
 				},
-				{
-					fieldtype: 'Column Break'
-				},				
-				{
-					label: __('Price'),
-					fieldname: 'price',
-					fieldtype: 'Currency',
-					
-					change: () => {},
-					read_only:1
-					
-				},				
 				{
 					label: __('Qty'),
 					fieldname: 'qty',
@@ -120,6 +106,28 @@ erpnext.StockQuery = class StockQuery {
 					fieldtype: 'Column Break'
 				},
 				{
+					label: __('HSN'),
+					fieldname: 'gst_hsn_code',
+					fieldtype: 'Data',
+					
+					change: () => {},
+					read_only:1
+					
+				},					
+				{
+					label: __('UOM'),
+					fieldname: 'stock_uom',
+					fieldtype: 'Data',
+					
+					
+					read_only:1
+					
+				},			
+				
+				{
+					fieldtype: 'Column Break'
+				},
+				{
 					label: __('Tax'),
 					fieldname: 'tax',
 					fieldtype: 'Data',
@@ -129,18 +137,16 @@ erpnext.StockQuery = class StockQuery {
 					
 				},
 				{
-					fieldtype: 'Column Break'
-				},
-				
-				{
-					label: __('HSN'),
-					fieldname: 'gst_hsn_code',
-					fieldtype: 'Data',
+					label: __('Price'),
+					fieldname: 'price',
+					fieldtype: 'Currency',
 					
 					change: () => {},
 					read_only:1
 					
 				},
+				
+				
 				{
 					fieldtype: 'Section Break'
 				},
@@ -200,7 +206,7 @@ erpnext.StockQuery = class StockQuery {
 		$(this.form.wrapper)
 				.find(".input-with-feedback[data-fieldname='item_code']")
 				.css({
-					backgroundColor: '#cfcfcf'
+					backgroundColor: '#ffffff'
 				});
 				$(this.form.wrapper)
 				.find("[data-fieldname='item_name']").find(".form-group").find(".control-input-wrapper").find(".control-value")
@@ -224,6 +230,26 @@ erpnext.StockQuery = class StockQuery {
 				});
 				$(this.form.wrapper)
 				.find("[data-fieldname='qty']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='item_group']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='company_code']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='gst_hsn_code']").find(".form-group").find(".control-input-wrapper").find(".control-value")
+				.css({
+					backgroundColor: '#cfcfcf'
+				});
+				$(this.form.wrapper)
+				.find("[data-fieldname='price']").find(".form-group").find(".control-input-wrapper").find(".control-value")
 				.css({
 					backgroundColor: '#cfcfcf'
 				});
