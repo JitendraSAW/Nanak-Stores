@@ -348,14 +348,14 @@ class NanakPickList(SellingController):
 	def validate(self):
 		# console(self).log()
 
-		data = check_credit_limit(self.customer, self.company, True, self.grand_total)
-		# frappe.throw(str(data[3]))
+# 		data = check_credit_limit(self.customer, self.company, True, self.grand_total)
+# 		# frappe.throw(str(data[3]))
 
-		if data[3] == 0:
-			if data[2]["customer_group"] < data[0]:
-				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
-			elif data[2]["customer"] < data[1]:
-				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
+# 		if data[3] == 0:
+# 			if data[2]["customer_group"] < data[0]:
+# 				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
+# 			elif data[2]["customer"] < data[1]:
+# 				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
 		# else:
 		# 	name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
 		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
@@ -454,9 +454,9 @@ class NanakPickList(SellingController):
 		frappe.db.commit()
 
 	def on_submit(self):
-		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		if name:
-			frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
+# 		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+# 		if name:
+# 			frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
 		# self.validate_packed_qty()
 
 		# Check for Approving Authority
