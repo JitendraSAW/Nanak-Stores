@@ -7,8 +7,6 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "delivery_to_section",
-  "column_break0",
   "title",
   "naming_series",
   "customer",
@@ -116,6 +114,10 @@
   "transporter_name",
   "driver_name",
   "lr_date",
+  "over_credit_details_section",
+  "over_credit",
+  "credit_limit",
+  "approved_amount",
   "more_info",
   "project",
   "campaign",
@@ -151,22 +153,12 @@
   "total_commission",
   "section_break1",
   "sales_team",
-  "amended_from"
+  "amended_from",
+  "sales_invoice_details_section",
+  "sales_invoice",
+  "sales_invoice_status"
  ],
  "fields": [
-  {
-   "fieldname": "delivery_to_section",
-   "fieldtype": "Section Break",
-   "label": "Delivery To",
-   "options": "fa fa-user"
-  },
-  {
-   "fieldname": "column_break0",
-   "fieldtype": "Column Break",
-   "oldfieldtype": "Column Break",
-   "print_width": "50%",
-   "width": "50%"
-  },
   {
    "allow_on_submit": 1,
    "default": "{customer_name}",
@@ -288,7 +280,7 @@
   {
    "allow_on_submit": 1,
    "fieldname": "po_no",
-   "fieldtype": "Small Text",
+   "fieldtype": "Data",
    "label": "Customer's Purchase Order No",
    "no_copy": 1,
    "oldfieldname": "po_no",
@@ -972,6 +964,7 @@
    "collapsible": 1,
    "fieldname": "more_info",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "More Information",
    "oldfieldtype": "Section Break",
    "options": "fa fa-file-text",
@@ -1062,6 +1055,7 @@
    "collapsible": 1,
    "fieldname": "printing_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Print Settings"
   },
   {
@@ -1119,6 +1113,7 @@
    "collapsible": 1,
    "fieldname": "section_break_83",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Status"
   },
   {
@@ -1190,6 +1185,7 @@
   {
    "fieldname": "subscription_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Subscription Section"
   },
   {
@@ -1206,6 +1202,7 @@
    "collapsible_depends_on": "total_commission",
    "fieldname": "sales_team_section_break",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Commission",
    "oldfieldtype": "Section Break",
    "options": "fa fa-group",
@@ -1253,6 +1250,7 @@
    "collapsible_depends_on": "sales_team",
    "fieldname": "section_break1",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Sales Team",
    "print_hide": 1
   },
@@ -1299,6 +1297,7 @@
    "label": "is_pos"
   },
   {
+   "default": "Nanak POS Profile",
    "depends_on": "is_pos",
    "fieldname": "pos_profile",
    "fieldtype": "Link",
@@ -1316,12 +1315,53 @@
    "fieldtype": "Table",
    "label": "Payments",
    "options": "Nanak Pick List Payments"
+  },
+  {
+   "fieldname": "over_credit_details_section",
+   "fieldtype": "Section Break",
+   "label": "Over Credit Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "over_credit",
+   "fieldtype": "Check",
+   "label": "Over Credit"
+  },
+  {
+   "fieldname": "credit_limit",
+   "fieldtype": "Currency",
+   "label": "Credit Limit"
+  },
+  {
+   "fieldname": "approved_amount",
+   "fieldtype": "Currency",
+   "label": "Approved Amount"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "sales_invoice_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Sales Invoice Status",
+   "options": "Pending\nCreated"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sales_invoice_details_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Invoice Details"
   }
  ],
  "icon": "fa fa-truck",
  "is_submittable": 1,
  "links": [],
- "modified": "2022-04-01 22:13:41.848299",
+ "modified": "2022-04-25 19:59:49.573573",
  "modified_by": "Administrator",
  "module": "Nanak Customization",
  "name": "Nanak Pick List",

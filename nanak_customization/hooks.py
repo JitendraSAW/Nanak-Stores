@@ -97,6 +97,12 @@ fixtures = [
 # ---------------
 # Hook on document methods and events
 
+doc_events = {
+	"Sales Invoice": {
+		"on_submit": "nanak_customization.nanak_customization.sales_invoice.after_submit"
+	}
+}
+
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",

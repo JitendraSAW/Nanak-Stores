@@ -346,19 +346,17 @@ class NanakPickList(SellingController):
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
 
 	def validate(self):
-		# console(self).log()
 
-		data = check_credit_limit(self.customer, self.company, True, self.grand_total)
-		# frappe.throw(str(data[3]))
-
-		if data[3] == 0:
-			if data[2]["customer_group"] < data[0]:
-				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
-			elif data[2]["customer"] < data[1]:
-				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
-		# else:
-		# 	name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
+		
+		# data = check_credit_limit(self.customer, self.company, True, self.grand_total)
+		
+		# if data:
+		# 	if data[3] == 0:
+		# 		if data[2]["customer_group"] < data[0]:
+		# 			frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
+		# 		elif data[2]["customer"] < data[1]:
+		# 			frappe.throw("Credit limit has been crossed for Customer of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
+		
  		
 		self.validate_posting_time()
 		super(NanakPickList, self).validate()
@@ -454,9 +452,15 @@ class NanakPickList(SellingController):
 		frappe.db.commit()
 
 	def on_submit(self):
-		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		if name:
-			frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
+		# credit_days_data = get_credit_days(self.customer, self.company,self.posting_date)
+		# # frappe.msgprint(str(credit_days_data))
+		# if int(credit_days_data['pending_invoice_date']) > int(credit_days_data['customer_credit_days']):
+		# 	frappe.throw("Credit Limit Days Exceeded for Customer - " + self.customer + " (" + credit_days_data['pending_invoice_date'] + "/" + credit_days_data['customer_credit_days'] + " Days)")
+		# 	# frappe.throw("Customer Has "+ str(credit_days_data['count']) +" Outstanding Invoices "+ credit_days_data['pending_str'] +" according to credit days")
+		
+		# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+		# if name:
+		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
 		# self.validate_packed_qty()
 
 		# Check for Approving Authority
@@ -628,6 +632,8 @@ def check_credit_limit(customer, company, ignore_outstanding_sales_order=True, e
 	group_outstanding = flt(group_outstanding) + flt(extra_amount)
 	# frappe.msgprint(str(customer_outstanding) + ' - ' + extra_amount + ' - ' + str(customer_extra))
 
+
+
 	if credit_limit['customer'] > 0 and (customer_outstanding > credit_limit['customer'] or group_outstanding > credit_limit['customer_group']):
 		# frappe.msgprint(_("Credit limit has been crossed for customer {0} ({1}/{2})")
 		# 	.format(customer, customer_outstanding, credit_limit))
@@ -680,23 +686,51 @@ def get_credit_days(customer, company,date):
 
 	credit_days_customer = frappe.db.get_value("Customer Credit Limit",
 		{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_days')
+
+	# frappe.msgprint(str(credit_days_customer_group))
+	# frappe.msgprint(str(credit_days_customer))
+	
 	
 	if credit_days_customer or credit_days_customer_group:
 	
-		credit_day = credit_days_customer_group if int(credit_days_customer_group)>int(credit_days_customer) else credit_days_customer
-
+		credit_day = credit_days_customer_group if int(credit_days_customer_group)<int(credit_days_customer) else credit_days_customer
+		# frappe.msgprint(str(credit_day))
 		if credit_day:
 
-			last_date = add_days(date, -(credit_day))
+			# last_date = add_days(date, -(credit_day))
+			# frappe.msgprint(str(last_date))
+			# days_from_last_invoice_raw_test = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date,name from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1 ", (customer), as_dict =1)
+			# frappe.msgprint(str(days_from_last_invoice_raw_test))
 
-			out_standing_amount = frappe.db.sql("""
-			select sum(si.outstanding_amount) as outstand from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0 group by si.customer
-			""",(last_date,"Steve"),as_dict = 1)
+			days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1 ", (customer), as_dict =1)
+			if not days_from_last_invoice_raw:
+				days_from_last_invoice = 0
+			else:
+				days_from_last_invoice = str(days_from_last_invoice_raw[0].date)
+
+			
+
+			# pending_invoices = frappe.db.sql("""
+			# select si.name as invoice from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0
+			# """,(last_date,customer),as_dict = 1)
+			# pending_str = [i['invoice'] for i in pending_invoices]
+			
+			# frappe.msgprint(str(customer))
+			# out_standing_amount = frappe.db.sql("""
+			# select si.outstanding_amount,si.name from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0 and si.docstatus = 1
+			# """,(last_date,customer),as_dict = 1)
+			# frappe.msgprint(str(out_standing_amount))
 
 			# if out_standing_amount[0]['outstand'] > 0:
 			# 	frappe.msgprint("Customer Has Outstanding Amount of {} according to credit days".format(out_standing_amount[0]['outstand']))
 
-			return out_standing_amount
+			return {
+				# "count" : len(pending_invoices),
+				# "invoices":pending_invoices,
+				# "pending_str":str(pending_str),
+				"pending_invoice_date": str(days_from_last_invoice),
+				"customer_credit_days": str(credit_day)
+			}
 
 
 # def get_credit_limit(customer, company):
@@ -1465,6 +1499,11 @@ def check_item_stock_bs(item,set_warehouse=None):
 			frappe.msgprint(table)
 			return 0
 			
+
+@frappe.whitelist()
+def get_discount(item, customer):
+    doc = frappe.db.sql("select discount_percentage from `tabSales Invoice Item` sio left join `tabSales Invoice` si on si.name = sio.parent where si.customer = %s and sio.item_code = %s order by si.creation desc limit 1", (customer, item))
+    return doc[0][0]
 
 	
 

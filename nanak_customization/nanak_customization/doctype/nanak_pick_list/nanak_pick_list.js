@@ -163,7 +163,12 @@ refresh_field("items");
 				"callback":function(res){
 					console.log(res)
 					if(res.message){
-						frappe.msgprint("Customer Has Outstanding Amount of "+ res.message[0]['outstand'] +" according to credit days")
+						console.log(res.message)
+						// frappe.msgprint("Customer ")
+						// frappe.msgprint("Credit Limit Days Exceeded for Customer "+frm.doc.customer+ "(xx/yy Days)")
+						// frappe.msgprint("Customer Has "+ res.message.count +" Outstanding Invoices "+ res.message.pending_str +" according to credit days")
+						if(parseInt(res.message.pending_invoice_date) > parseInt(res.message.customer_credit_days))
+						frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.pending_invoice_date + "/" + res.message.customer_credit_days + " Days)")
 					}
 
 				}
@@ -171,6 +176,27 @@ refresh_field("items");
 		}
 		
 	},
+	// before_submit(frm){
+	// 	if(frm.doc.customer){
+	// 		frappe.call({
+	// 			"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_credit_days",
+	// 			"args":{
+	// 				"customer":frm.doc.customer,
+	// 				"company":frm.doc.company,
+	// 				"date":frm.doc.posting_date
+	// 			},
+	// 			"callback":function(res){
+	// 				console.log(res)
+	// 				if(res.message){
+	// 					console.log(res.message)
+	// 					// frappe.msgprint("Customer ")
+	// 					frappe.throw("Customer Has "+ res.message.count +" Outstanding Invoices "+ res.message.pending_str +" according to credit days")
+	// 				}
+
+	// 			}
+	// 		})
+	// 	}
+	// },
 
 	refresh: function(frm) {
 		change_color_code(frm)		
@@ -186,7 +212,7 @@ refresh_field("items");
 
 frappe.ui.form.on("Nanak Pick List Item", {
 	// Item popup to select
-	// items_add(frm){
+	// items_add: function (frm,cdt,cdn){
 	// 	console.log("add item")
 	// 	frappe.call({
 	// 		"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
@@ -198,10 +224,36 @@ frappe.ui.form.on("Nanak Pick List Item", {
 	// 		},
 	// 		"callback":function(res){
 	// 			console.log(res)
-	// 			if(res.message){					
-	// 				frappe.msgprint("Credit limit has been crossed for customer "+frm.doc.customer+" ("+res.message[0]+"/"+res.message[1]+")")
-	// 				frm.doc.items.splice(frm.doc.items[frm.doc.items.length], 1)
-	// 				frm.refresh_field('items')
+	// 			console.log(frm.doc.items.length)
+	// 			console.log(res.message[2].customer_group)
+	// 			if(res.message){	
+	// 				if(res.message[3] == 0){
+	// 					if(res.message[2].customer_group < res.message[0]){
+	// 						frappe.msgprint("Credit Limit Amount Exceeded for Customer Group – "+frm.doc.customer+" ("+res.message[0]+"/"+res.message[2].customer_group+")")
+	// 					}
+	// 					else if(res.message[2].customer < res.message[1]){
+	// 						frappe.msgprint("Credit Limit Amount Exceeded for Customer - "+frm.doc.customer+" ("+res.message[1]+"/"+res.message[2].customer+")")
+	// 					}
+						
+	// 					frm.doc.items.splice(frm.doc.items.length - 1, 1)
+						
+	// 					var grand_total = 0
+	// 					var total_qty = 0
+
+	// 					frm.doc.items.forEach(function(row) {
+	// 						total_qty += row.qty;
+	// 						grand_total += row.base_amount;
+	// 					})
+
+	// 					frm.doc.total_qty = total_qty;
+	// 					frm.doc.grand_total = grand_total;
+	// 					frm.doc.total = grand_total;
+	// 					frm.refresh_field('total_qty')
+	// 					frm.refresh_field('grand_total')
+	// 					frm.refresh_field('total')
+	// 					frm.refresh_field('items')
+	// 				}				
+					
 	// 			}
 	// 		}
 	// 	})
@@ -317,48 +369,7 @@ var change_color_code = function (frm) {
 
 erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 	//override tranasction.js methods
-	setup_quality_inspection: function() {
-		// if(!in_list(["Delivery Note", "Sales Invoice", "Purchase Receipt", "Purchase Invoice","Nanak Pick List"], this.frm.doc.doctype)) {
-		// 	return;
-		// }
-
-		// const me = this;
-		// if (!this.frm.is_new() && this.frm.doc.docstatus === 0) {
-		// 	this.frm.add_custom_button(__("Quality Inspection(s)"), () => {
-		// 		me.make_quality_inspection();
-		// 	}, __("Create"));
-		// 	this.frm.page.set_inner_btn_group_as_primary(__('Create'));
-		// }
-
-		// const inspection_type = in_list(["Purchase Receipt", "Purchase Invoice"], this.frm.doc.doctype)
-		// 	? "Incoming" : "Outgoing";
-
-		// let quality_inspection_field = this.frm.get_docfield("items", "quality_inspection");
-		// quality_inspection_field.get_route_options_for_new_doc = function(row) {
-		// 	if(me.frm.is_new()) return;
-		// 	return {
-		// 		"inspection_type": inspection_type,
-		// 		"reference_type": me.frm.doc.doctype,
-		// 		"reference_name": me.frm.doc.name,
-		// 		"item_code": row.doc.item_code,
-		// 		"description": row.doc.description,
-		// 		"item_serial_no": row.doc.serial_no ? row.doc.serial_no.split("\n")[0] : null,
-		// 		"batch_no": row.doc.batch_no
-		// 	}
-		// }
-
-		// this.frm.set_query("quality_inspection", "items", function(doc, cdt, cdn) {
-		// 	let d = locals[cdt][cdn];
-		// 	return {
-		// 		filters: {
-		// 			docstatus: 1,
-		// 			inspection_type: inspection_type,
-		// 			reference_name: doc.name,
-		// 			item_code: d.item_code
-		// 		}
-		// 	}
-		// });
-	},
+	
 
 	item_code: function(doc, cdt, cdn) {
 		var me = this;
@@ -440,6 +451,7 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 									// console.log(me)
 									me.add_taxes_from_item_tax_template(d.item_tax_rate);
 									if (d.free_item_data) {
+										me.frm.script_manager.trigger("get_last_discount", cdt, cdn);
 										me.apply_product_discount(d);
 									}
 								},
@@ -516,6 +528,28 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 				});
 			}
 		}
+	},
+
+	get_last_discount:function(frm,cdt,cdn){
+		var item = locals[cdt][cdn]
+		frappe.call({
+            method: "nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_discount",
+            args: {
+                "item":item.item_code,
+                "customer":me.frm.doc.customer
+            },
+            freeze: true,
+            callback: function(res){
+                console.log(res)
+				if(res.message && !item.ignore_last_sales_discount){					
+					item.discount_percentage = res.message;
+					me.frm.script_manager.trigger("discount_percentage", cdt, cdn);
+					// frappe.msgprint("Item Discount "+res.message+"% applied as per last Sales Invoice!")
+				}
+				
+
+            }
+        })
 	},
 
 	price_list_rate: function(doc, cdt, cdn) {
@@ -824,11 +858,13 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 		}
 
 		if(doc.docstatus==1 && !doc.is_return && doc.status!="Closed" && flt(doc.per_billed) < 100) {
+			frappe.db.get_value('Sales Invoice', {picklist_reference: doc.name}, 'name', (r) => {
+				if(!r.name){
+					this.frm.add_custom_button(__('Sales Invoice'), function() { me.make_sales_invoice() },
+						__('Create'));
+				}				
+			})
 			
-
-			
-				this.frm.add_custom_button(__('Sales Invoice'), function() { me.make_sales_invoice() },
-					__('Create'));
 			
 		}
 	
@@ -1120,13 +1156,16 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			debounce: 2000,
 			callback: function(r) {
-				// console.log(r)
+				console.log(r)
 				if(r.message) {
 					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
 					frm.set_value('taxes', r.message.taxes);
 					frm.set_value('place_of_supply', r.message.place_of_supply);
+					// frm.set_value('is_register', r.message.is_register);
 				}
 			}
 		});
 	}
 });
+
+
