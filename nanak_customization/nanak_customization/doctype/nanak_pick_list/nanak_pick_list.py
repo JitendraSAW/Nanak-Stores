@@ -346,17 +346,19 @@ class NanakPickList(SellingController):
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
 
 	def validate(self):
+		# console(self).log()
 
-		
-		# data = check_credit_limit(self.customer, self.company, True, self.grand_total)
-		
-		# if data:
-		# 	if data[3] == 0:
-		# 		if data[2]["customer_group"] < data[0]:
-		# 			frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
-		# 		elif data[2]["customer"] < data[1]:
-		# 			frappe.throw("Credit limit has been crossed for Customer of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
-		
+# 		data = check_credit_limit(self.customer, self.company, True, self.grand_total)
+# 		# frappe.throw(str(data[3]))
+
+# 		if data[3] == 0:
+# 			if data[2]["customer_group"] < data[0]:
+# 				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[0])+"/"+str(data[2]["customer_group"])+")")
+# 			elif data[2]["customer"] < data[1]:
+# 				frappe.throw("Credit limit has been crossed for Customer Group of "+ self.customer +" ("+str(data[1])+"/"+str(data[2]["customer"])+")")
+		# else:
+		# 	name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
  		
 		self.validate_posting_time()
 		super(NanakPickList, self).validate()
@@ -452,15 +454,9 @@ class NanakPickList(SellingController):
 		frappe.db.commit()
 
 	def on_submit(self):
-		# credit_days_data = get_credit_days(self.customer, self.company,self.posting_date)
-		# # frappe.msgprint(str(credit_days_data))
-		# if int(credit_days_data['pending_invoice_date']) > int(credit_days_data['customer_credit_days']):
-		# 	frappe.throw("Credit Limit Days Exceeded for Customer - " + self.customer + " (" + credit_days_data['pending_invoice_date'] + "/" + credit_days_data['customer_credit_days'] + " Days)")
-		# 	# frappe.throw("Customer Has "+ str(credit_days_data['count']) +" Outstanding Invoices "+ credit_days_data['pending_str'] +" according to credit days")
-		
-		# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		# if name:
-		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
+# 		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+# 		if name:
+# 			frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
 		# self.validate_packed_qty()
 
 		# Check for Approving Authority

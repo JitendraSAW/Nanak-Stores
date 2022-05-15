@@ -20,7 +20,7 @@ def get_header_data(item_code):
 			select
 			i.item_name,
 			i.item_group,i.stock_category,i.company_code,it.item_tax_template,i.stock_uom,
-			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = %s order by creation desc limit 1 ) as price,
+			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = %s order by creation desc limit 1) as price,
 			i.gst_hsn_code,
 			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
