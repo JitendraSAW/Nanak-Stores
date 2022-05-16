@@ -1499,7 +1499,8 @@ def check_item_stock_bs(item,set_warehouse=None):
 @frappe.whitelist()
 def get_discount(item, customer):
     doc = frappe.db.sql("select discount_percentage from `tabSales Invoice Item` sio left join `tabSales Invoice` si on si.name = sio.parent where si.customer = %s and sio.item_code = %s order by si.creation desc limit 1", (customer, item))
-    return doc[0][0]
+    if doc:
+	return doc[0][0] 
 
 	
 
