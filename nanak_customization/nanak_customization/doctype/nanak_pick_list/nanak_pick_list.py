@@ -451,7 +451,7 @@ class NanakPickList(SellingController):
 				frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",qty[0]['qty'])
 		frappe.db.commit()
 
-	def on_submit(self):
+	def before_submit(self):
 		# credit_days_data = get_credit_days(self.customer, self.company,self.posting_date)
 		# # frappe.msgprint(str(credit_days_data))
 		# if int(credit_days_data['pending_invoice_date']) > int(credit_days_data['customer_credit_days']):
