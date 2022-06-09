@@ -10,7 +10,7 @@ from six import string_types
 
 from erpnext.controllers.accounts_controller import get_taxes_and_charges
 from erpnext.controllers.taxes_and_totals import get_itemised_tax, get_itemised_taxable_amount
-from erpnext.hr.utils import get_salary_assignment
+# from erpnext.hr.utils import get_salary_assignment
 from erpnext.payroll.doctype.salary_structure.salary_structure import make_salary_slip
 from erpnext.regional.india import number_state_mapping, state_numbers, states
 
