@@ -454,7 +454,6 @@ class NanakPickList(SellingController):
 		frappe.db.commit()
 
 	def before_submit(self):
-<<<<<<< HEAD
 		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
 		if name:
 			frappe.db.delete("Allow Credit Limit Item", {
@@ -462,18 +461,6 @@ class NanakPickList(SellingController):
 			})
 		else:
 			credit_days_data = get_credit_days(self.customer, self.company)
-=======
-		# credit_days_data = get_credit_days(self.customer, self.company,self.posting_date)
-		# # frappe.msgprint(str(credit_days_data))
-		# if int(credit_days_data['pending_invoice_date']) > int(credit_days_data['customer_credit_days']):
-		# 	frappe.throw("Credit Limit Days Exceeded for Customer - " + self.customer + " (" + credit_days_data['pending_invoice_date'] + "/" + credit_days_data['customer_credit_days'] + " Days)")
-		# 	# frappe.throw("Customer Has "+ str(credit_days_data['count']) +" Outstanding Invoices "+ credit_days_data['pending_str'] +" according to credit days")
-		
-		# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		# if name:
-		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
-		# self.validate_packed_qty()
->>>>>>> 68fca376a5aa27ed030ae7682e91f150faf4f09c
 
 			# frappe.throw(str(credit_days_data[0][0].date) + "/" + str(credit_days_data[1]))
 			if credit_days_data:
