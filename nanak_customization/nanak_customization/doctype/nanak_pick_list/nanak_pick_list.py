@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from pickle import TRUE
+from pickletools import read_string1
 import frappe
 import frappe.defaults
 from erpnext.controllers.selling_controller import SellingController
@@ -451,36 +453,34 @@ class NanakPickList(SellingController):
 				frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",qty[0]['qty'])
 		frappe.db.commit()
 
-	def on_submit(self):
-		# credit_days_data = get_credit_days(self.customer, self.company,self.posting_date)
-		# # frappe.msgprint(str(credit_days_data))
-		# if int(credit_days_data['pending_invoice_date']) > int(credit_days_data['customer_credit_days']):
-		# 	frappe.throw("Credit Limit Days Exceeded for Customer - " + self.customer + " (" + credit_days_data['pending_invoice_date'] + "/" + credit_days_data['customer_credit_days'] + " Days)")
-		# 	# frappe.throw("Customer Has "+ str(credit_days_data['count']) +" Outstanding Invoices "+ credit_days_data['pending_str'] +" according to credit days")
-		
-		# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
-		# if name:
-		# 	frappe.db.set_value("Allow Credit Limit Item", name, "allow", 0)
-		# self.validate_packed_qty()
+	def before_submit(self):
+		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
+		if name:
+			frappe.db.delete("Allow Credit Limit Item", {
+				"name": ("=", name)
+			})
+		else:
+			credit_days_data = get_credit_days(self.customer, self.company)
 
-		# Check for Approving Authority
-		# frappe.get_doc('Authorization Control').validate_approving_authority(self.doctype, self.company, self.base_grand_total, self)
+			# frappe.throw(str(credit_days_data[0][0].date) + "/" + str(credit_days_data[1]))
+			if credit_days_data:
+				if int(credit_days_data['days_from_last_invoice']) > int(credit_days_data['credit_days']):
+					if int(credit_days_data['is_group']) == 0:
+						frappe.throw("Credit Limit Days Exceeded for Customer - " + self.customer + " (" + str(credit_days_data['days_from_last_invoice']) + "/" + str(credit_days_data['credit_days']) + " Days)")
+					else:
+						frappe.throw("Credit Limit Days Exceeded for Customer Group - " + credit_days_data['customer_group'] + " (" + str(credit_days_data['days_from_last_invoice']) + "/" + str(credit_days_data['credit_days']) + " Days)")
 
-		# update delivered qty in sales order
-		# self.update_prevdoc_status()
-		# self.update_billing_status()
+			credit_limit_data = check_credit_limit(self.customer, self.company, True, self.grand_total)
+			if credit_limit_data:
+				if int(credit_limit_data['is_group']) == 0:
+					frappe.throw("Credit Limit Amount Exceeded for Customer - "+ self.customer + " ("+str(credit_limit_data['customer_outstanding'])+"/"+str(credit_limit_data['credit_limit'])+")")
+				else:
+					frappe.throw("Credit Limit Amount Exceeded for Customer - "+ credit_limit_data['customer_group'] + " ("+str(credit_limit_data['group_outstanding'])+"/"+str(credit_limit_data['credit_limit'])+")")
 
-		# if not self.is_return:
-		# 	self.check_credit_limit()
-		# elif self.issue_credit_note:
-		# 	self.make_return_invoice()
-		# Updating stock ledger should always be called after updating prevdoc status,
-		# because updating reserved qty in bin depends upon updated delivered qty in SO
-		# self.update_stock_ledger()
-		# self.make_gl_entries()
-		# self.repost_future_sle_and_gle()
+
 		self.update_picked_qty_in_so()
 		create_stock_reservation(self)
+		
 
 	
 
@@ -607,44 +607,63 @@ class NanakPickList(SellingController):
 			frappe.throw(_("Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"))
 	pass
 
-
-
-
-
 # Credit Control Functionality
 @frappe.whitelist()
 def check_credit_limit(customer, company, ignore_outstanding_sales_order=True, extra_amount=0):
-	credit_limit = get_credit_limit(customer, company)
-	# frappe.msgprint(str(credit_limit))
-	if not credit_limit:
-		return
-
-	customers = frappe.db.sql("select name from `tabCustomer` where customer_group = (select customer_group from `tabCustomer` where name = %s)", (customer), as_dict = True)
-	group_outstanding = 0
-	for cust in customers:
-		group_outs = get_customer_outstanding(cust.name, company, ignore_outstanding_sales_order)
-		if group_outs:
-			group_outstanding = group_outstanding + group_outs
-
-	customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
+	dict_credit_limit = {}
 	
-	customer_outstanding = flt(customer_outstanding) + flt(extra_amount)
-	group_outstanding = flt(group_outstanding) + flt(extra_amount)
-	# frappe.msgprint(str(customer_outstanding) + ' - ' + extra_amount + ' - ' + str(customer_extra))
-
-
-
-	if credit_limit['customer'] > 0 and (customer_outstanding > credit_limit['customer'] or group_outstanding > credit_limit['customer_group']):
-		# frappe.msgprint(_("Credit limit has been crossed for customer {0} ({1}/{2})")
-		# 	.format(customer, customer_outstanding, credit_limit))
-		allow_credit = frappe.get_value("Allow Credit Limit Item",{"customer": customer},"allow")
-
-		if not allow_credit:
-			allow_credit = 0
-
-		return [group_outstanding,customer_outstanding,credit_limit,allow_credit]
+	name = frappe.db.get_value("Allow Credit Limit Item", {'customer': customer}, "name")
+	# frappe.msgprint(str(name))
+	if name:
+	# 	frappe.db.delete("Allow Credit Limit Item", {
+	# 		"name": ("=", name)
+	# 	})
+		dict_credit_limit["allow_credit"] = 1
 	else:
-		return 0
+		dict_credit_limit["allow_credit"] = 0
+	dict_credit_limit = check_credit_limit_customer(customer, company, ignore_outstanding_sales_order, extra_amount, dict_credit_limit)
+
+	# frappe.msgprint(str(credit_limit))
+	if not dict_credit_limit:
+		dict_credit_limit = {}
+		dict_credit_limit = check_credit_limit_customer_group(customer, company, ignore_outstanding_sales_order, extra_amount, dict_credit_limit)
+		if dict_credit_limit:
+			dict_credit_limit["is_group"] = 1
+			return dict_credit_limit
+		else:
+			return
+	else:
+		dict_credit_limit["is_group"] = 0
+		return dict_credit_limit
+
+	#02-06-2022 code comment start
+	# customers = frappe.db.sql("select name, customer_group from `tabCustomer` where customer_group = (select customer_group from `tabCustomer` where name = %s)", (customer), as_dict = True)
+	# group_outstanding = 0
+	# for cust in customers:
+	# 	group_outs = get_customer_outstanding(cust.name, company, ignore_outstanding_sales_order)
+	# 	if group_outs:
+	# 		group_outstanding = group_outstanding + group_outs
+
+	# customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
+	
+	# customer_outstanding = flt(customer_outstanding) + flt(extra_amount)
+	# group_outstanding = flt(group_outstanding) + flt(extra_amount)
+	# # frappe.msgprint(str(customer_outstanding) + ' - ' + extra_amount + ' - ' + str(customer_extra))
+
+
+
+	# if credit_limit['customer'] > 0 and (customer_outstanding > credit_limit['customer'] or group_outstanding > credit_limit['customer_group']):
+	# 	# frappe.msgprint(_("Credit limit has been crossed for customer {0} ({1}/{2})")
+	# 	# 	.format(customer, customer_outstanding, credit_limit))
+	# 	allow_credit = frappe.get_value("Allow Credit Limit Item",{"customer": customer},"allow")
+
+	# 	if not allow_credit:
+	# 		allow_credit = 0
+
+	# 	return [group_outstanding,customer_outstanding,credit_limit,allow_credit, customers[0].customer_group]
+	# else:
+	# 	return 0
+	#02-06-2022 code comment ends
 
 		# # If not authorized person raise exception
 		# credit_controller_role = frappe.db.get_single_value('Accounts Settings', 'credit_controller')
@@ -677,61 +696,184 @@ def check_credit_limit(customer, company, ignore_outstanding_sales_order=True, e
 		# 		}
 		# 	)
 
-@frappe.whitelist()
-def get_credit_days(customer, company,date):
-	from frappe.utils import add_days
-	customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
-	credit_days_customer_group = frappe.db.get_value("Customer Credit Limit",
-		{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_days')
+def check_credit_limit_customer(customer, company, ignore_outstanding_sales_order, extra_amount, dict_credit_limit):
+	dict_credit_limit = get_credit_limit_customer(customer, company, dict_credit_limit)
 
-	credit_days_customer = frappe.db.get_value("Customer Credit Limit",
+	customer_outstanding = get_customer_outstanding(customer, company, ignore_outstanding_sales_order)
+	customer_outstanding = flt(customer_outstanding) + flt(extra_amount)
+
+	if dict_credit_limit['credit_limit'] > 0 and customer_outstanding > dict_credit_limit['credit_limit']:
+		dict_credit_limit['customer_outstanding'] = customer_outstanding
+		return dict_credit_limit
+
+
+def check_credit_limit_customer_group(customer, company, ignore_outstanding_sales_order, extra_amount, dict_credit_limit):
+	dict_credit_limit = get_credit_limit_customer_group(customer, company,dict_credit_limit)
+
+	customers = frappe.db.sql("select name, customer_group from `tabCustomer` where customer_group = (select customer_group from `tabCustomer` where name = %s)", (customer), as_dict = True)
+	group_outstanding = 0
+	for cust in customers:
+		group_outs = get_customer_outstanding(cust.name, company, ignore_outstanding_sales_order)
+		if group_outs:
+			group_outstanding = group_outstanding + group_outs
+
+	group_outstanding = flt(group_outstanding) + flt(extra_amount)
+
+	if dict_credit_limit['credit_limit'] > 0 and group_outstanding > dict_credit_limit['credit_limit']:
+		dict_credit_limit['group_outstanding'] = group_outstanding
+		dict_credit_limit['customer_group'] = customers[0].customer_group
+		return dict_credit_limit
+
+
+# def get_credit_limit(customer, company):
+
+# 	if customer:
+# 		credit_limit = get_credit_limit_customer(customer, company)
+
+# 		if not credit_limit:
+# 			credit_limit = get_credit_limit_customer_group(customer, company)
+
+# 	# if not credit_limit.customer:
+# 	# 	credit_limit.customer = 0
+
+# 	# if not credit_limit.customer_group:
+# 	# 	credit_limit.customer_group = 0
+
+# 	return credit_limit
+
+def get_credit_limit_customer(customer, company, dict_credit_limit):
+	credit_limit = flt(frappe.db.get_value("Customer Credit Limit",
+	{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit'))
+	
+	dict_credit_limit["credit_limit"] = credit_limit
+	return dict_credit_limit
+
+def get_credit_limit_customer_group(customer, company, dict_credit_limit):
+	customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
+	credit_limit = flt(frappe.db.get_value("Customer Credit Limit",
+		{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit'))
+
+	dict_credit_limit["credit_limit"] = credit_limit
+	return dict_credit_limit
+
+@frappe.whitelist()
+def get_credit_days(customer, company,date=None):
+	dict_credit_days = {}
+	# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': customer}, "name")
+	# frappe.msgprint(str(name))
+	# if name:
+	# 	frappe.db.delete("Allow Credit Limit Item", {
+	# 		"name": ("=", name)
+	# 	})
+	# 	dict_credit_days["allow_credit"] = 1
+	# else:
+	# 	dict_credit_days["allow_credit"] = 0
+
+
+	
+	dict_credit_days = check_credit_days_customer(customer, company, dict_credit_days)
+	
+	if not dict_credit_days:
+		dict_credit_days = {}
+		dict_credit_days = check_credit_days_customer_group(customer, company, dict_credit_days)
+		if dict_credit_days:
+			dict_credit_days["is_group"] = 1
+			return dict_credit_days
+		else:
+			return
+	else:
+		dict_credit_days["is_group"] = 0
+		return dict_credit_days
+
+	# from frappe.utils import add_days
+	# customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
+	# credit_days_customer_group = frappe.db.get_value("Customer Credit Limit",
+	# 	{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_days')
+
+	# credit_days_customer = frappe.db.get_value("Customer Credit Limit",
+	# 	{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_days')
+
+	# # frappe.msgprint(str(credit_days_customer_group))
+	# # frappe.msgprint(str(credit_days_customer))
+	
+	
+	# if credit_days_customer or credit_days_customer_group:
+	
+	# 	credit_day = credit_days_customer_group if int(credit_days_customer_group)<int(credit_days_customer) else credit_days_customer
+	# 	# frappe.msgprint(str(credit_day))
+	# 	if credit_day:
+
+	# 		# last_date = add_days(date, -(credit_day))
+	# 		# frappe.msgprint(str(last_date))
+	# 		# days_from_last_invoice_raw_test = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date,name from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1 ", (customer), as_dict =1)
+	# 		# frappe.msgprint(str(days_from_last_invoice_raw_test))
+
+	# 		customer_group = ""
+
+	# 		days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date, si.customer, c.customer_group from `tabSales Invoice` si left join `tabCustomer` c on c.name = si.customer where si.customer in (select c1.name from `tabCustomer` c1 where c1.customer_group = (select c2.customer_group from `tabCustomer` c2 where c2.name = %s)) and si.outstanding_amount > 0 order by si.posting_date asc limit 1", (customer), as_dict =1)
+	# 		if not days_from_last_invoice_raw:
+	# 			days_from_last_invoice = 0
+	# 		else:
+	# 			days_from_last_invoice = str(days_from_last_invoice_raw[0].date)
+	# 			if customer != days_from_last_invoice_raw[0].customer:
+	# 				customer_group = days_from_last_invoice_raw[0].customer_group
+
+			
+
+	# 		# pending_invoices = frappe.db.sql("""
+	# 		# select si.name as invoice from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0
+	# 		# """,(last_date,customer),as_dict = 1)
+	# 		# pending_str = [i['invoice'] for i in pending_invoices]
+			
+	# 		# frappe.msgprint(str(customer))
+	# 		# out_standing_amount = frappe.db.sql("""
+	# 		# select si.outstanding_amount,si.name from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0 and si.docstatus = 1
+	# 		# """,(last_date,customer),as_dict = 1)
+	# 		# frappe.msgprint(str(out_standing_amount))
+
+	# 		# if out_standing_amount[0]['outstand'] > 0:
+	# 		# 	frappe.msgprint("Customer Has Outstanding Amount of {} according to credit days".format(out_standing_amount[0]['outstand']))
+
+	# 		return {
+	# 			# "count" : len(pending_invoices),
+	# 			# "invoices":pending_invoices,
+	# 			# "pending_str":str(pending_str),
+	# 			"pending_invoice_date": str(days_from_last_invoice),
+	# 			"customer_credit_days": str(credit_day),
+	# 			"customer_group": customer_group
+	# 		}
+		
+def check_credit_days_customer(customer, company, dict_credit_days):
+	credit_days = frappe.db.get_value("Customer Credit Limit",
 		{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_days')
 
-	# frappe.msgprint(str(credit_days_customer_group))
-	# frappe.msgprint(str(credit_days_customer))
-	
-	
-	if credit_days_customer or credit_days_customer_group:
-	
-		credit_day = credit_days_customer_group if int(credit_days_customer_group)<int(credit_days_customer) else credit_days_customer
-		# frappe.msgprint(str(credit_day))
-		if credit_day:
+	if credit_days:
+		days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1", (customer), as_dict = True)
 
-			# last_date = add_days(date, -(credit_day))
-			# frappe.msgprint(str(last_date))
-			# days_from_last_invoice_raw_test = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date,name from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1 ", (customer), as_dict =1)
-			# frappe.msgprint(str(days_from_last_invoice_raw_test))
-
-			days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1 ", (customer), as_dict =1)
-			if not days_from_last_invoice_raw:
-				days_from_last_invoice = 0
-			else:
-				days_from_last_invoice = str(days_from_last_invoice_raw[0].date)
-
+		if days_from_last_invoice_raw:
+			if days_from_last_invoice_raw[0].date > credit_days:
+				dict_credit_days["days_from_last_invoice"] = days_from_last_invoice_raw[0].date
+				dict_credit_days["credit_days"] = credit_days	
+				return dict_credit_days
 			
+		return
 
-			# pending_invoices = frappe.db.sql("""
-			# select si.name as invoice from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0
-			# """,(last_date,customer),as_dict = 1)
-			# pending_str = [i['invoice'] for i in pending_invoices]
+def check_credit_days_customer_group(customer, company, dict_credit_days):
+	customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
+	credit_days = frappe.db.get_value("Customer Credit Limit",
+		{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_days')
+
+	if credit_days:
+		days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date, c.customer_group from `tabSales Invoice` si left join `tabCustomer` c on c.name = si.customer where si.customer in (select c1.name from `tabCustomer` c1 where c1.customer_group = (select c2.customer_group from `tabCustomer` c2 where c2.name = %s)) and si.outstanding_amount > 0 order by si.posting_date asc limit 1", (customer), as_dict =1)
+
+		if days_from_last_invoice_raw:
+			if days_from_last_invoice_raw[0].date > credit_days:
+				dict_credit_days["days_from_last_invoice"] = days_from_last_invoice_raw[0].date
+				dict_credit_days["customer_group"] = days_from_last_invoice_raw[0].customer_group
+				dict_credit_days["credit_days"] = credit_days	
+				return dict_credit_days
 			
-			# frappe.msgprint(str(customer))
-			# out_standing_amount = frappe.db.sql("""
-			# select si.outstanding_amount,si.name from `tabSales Invoice` si where si.posting_date < %s and si.customer = %s and si.outstanding_amount > 0 and si.docstatus = 1
-			# """,(last_date,customer),as_dict = 1)
-			# frappe.msgprint(str(out_standing_amount))
-
-			# if out_standing_amount[0]['outstand'] > 0:
-			# 	frappe.msgprint("Customer Has Outstanding Amount of {} according to credit days".format(out_standing_amount[0]['outstand']))
-
-			return {
-				# "count" : len(pending_invoices),
-				# "invoices":pending_invoices,
-				# "pending_str":str(pending_str),
-				"pending_invoice_date": str(days_from_last_invoice),
-				"customer_credit_days": str(credit_day)
-			}
-
+		return
 
 # def get_credit_limit(customer, company):
 # 	credit_limit = None
@@ -749,26 +891,9 @@ def get_credit_days(customer, company,date):
 # 		credit_limit = frappe.get_cached_value('Company',  company,  "credit_limit")
 
 # 	return flt(credit_limit)
-
-def get_credit_limit(customer, company):
-	credit_limit = {"customer":0, "customer_group":0}
-
-	if customer:
-		credit_limit['customer'] = flt(frappe.db.get_value("Customer Credit Limit",
-			{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit'))
-
-		customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
-		credit_limit['customer_group'] = flt(frappe.db.get_value("Customer Credit Limit",
-			{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit'))
 			
 
-	# if not credit_limit.customer:
-	# 	credit_limit.customer = 0
-
-	# if not credit_limit.customer_group:
-	# 	credit_limit.customer_group = 0
-
-	return credit_limit
+	
 
 def get_customer_outstanding(customer, company, ignore_outstanding_sales_order=False, cost_center=None):
 	# Outstanding based on GL Entries
@@ -1398,6 +1523,7 @@ def create_stock_reservation(doc):
 			res=reservation_entry.insert(ignore_permissions=True)
 			res.submit()
 	except Exception as e:
+		
 		frappe.throw(str(e))
 
 @frappe.whitelist()

@@ -59,7 +59,12 @@ refresh_field("items");
 		frm.set_value("set_warehouse","")
 		frm.refresh_field("set_warehouse")
 	},
+	// refresh:function(frm){
+		
+	// },
 	setup: function(frm) {
+
+		
 
 		frm.custom_make_buttons = {
 			'Sales Invoice': 'Sales Invoice',
@@ -114,9 +119,15 @@ refresh_field("items");
 		frm.set_df_property('packed_items', 'cannot_delete_rows', true);
 	},
 	customer:function(frm){
-		if(frm.doc.customer){
+		if(frm.doc.customer != ""){
+			// frm.set_query("item_code", "items", function() {
+			// 	return {
+			// 		query: "erpnext.controllers.queries.item_query1",
+			// 		filters: {'is_sales_item': 0, 'customer': cur_frm.doc.customer}
+			// 	}
+			// });
 			get_party_details(frm)
-			// frm.trigger("get_customer_credit_days")
+			frm.trigger("get_customer_credit_days")
 			frm.trigger("get_customer_outstanding")
 		}
 	},
@@ -161,15 +172,33 @@ refresh_field("items");
 					"date":frm.doc.posting_date
 				},
 				"callback":function(res){
-					console.log(res)
+					console.log(res.message)
 					if(res.message){
-						console.log(res.message)
-						// frappe.msgprint("Customer ")
-						// frappe.msgprint("Credit Limit Days Exceeded for Customer "+frm.doc.customer+ "(xx/yy Days)")
-						// frappe.msgprint("Customer Has "+ res.message.count +" Outstanding Invoices "+ res.message.pending_str +" according to credit days")
-						if(parseInt(res.message.pending_invoice_date) > parseInt(res.message.customer_credit_days))
-						frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.pending_invoice_date + "/" + res.message.customer_credit_days + " Days)")
+						if(res.message.is_group == 0){
+							
+							frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
+							location.reload()
+							
+							// frm.reload_doc()
+							
+						}
+						else{
+							frappe.msgprint("Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
+							location.reload()
+						}	
 					}
+					// if(res.message){											
+					// 	if(parseInt(res.message.pending_invoice_date) > parseInt(res.message.customer_credit_days)){
+					// 		if(res.message.customer_group != ""){
+					// 			frappe.msgprint("Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.pending_invoice_date + "/" + res.message.customer_credit_days + " Days)")
+					// 		}
+					// 		else{
+					// 			frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.pending_invoice_date + "/" + res.message.customer_credit_days + " Days)")
+					// 		}
+							
+					// 	}
+						
+					// }
 
 				}
 			})
@@ -212,52 +241,84 @@ refresh_field("items");
 
 frappe.ui.form.on("Nanak Pick List Item", {
 	// Item popup to select
-	// items_add: function (frm,cdt,cdn){
-	// 	console.log("add item")
-	// 	frappe.call({
-	// 		"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
-	// 		"args":{
-	// 			"customer":frm.doc.customer,
-	// 			"company":frm.doc.company,
-	// 			"extra_amount":frm.doc.grand_total
+	items_add: function (frm,cdt,cdn){
+		console.log("add item")
+		frappe.call({
+			"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
+			"args":{
+				"customer":frm.doc.customer,
+				"company":frm.doc.company,
+				"extra_amount":frm.doc.grand_total
 				
-	// 		},
-	// 		"callback":function(res){
-	// 			console.log(res)
-	// 			console.log(frm.doc.items.length)
-	// 			console.log(res.message[2].customer_group)
-	// 			if(res.message){	
-	// 				if(res.message[3] == 0){
-	// 					if(res.message[2].customer_group < res.message[0]){
-	// 						frappe.msgprint("Credit Limit Amount Exceeded for Customer Group – "+frm.doc.customer+" ("+res.message[0]+"/"+res.message[2].customer_group+")")
-	// 					}
-	// 					else if(res.message[2].customer < res.message[1]){
-	// 						frappe.msgprint("Credit Limit Amount Exceeded for Customer - "+frm.doc.customer+" ("+res.message[1]+"/"+res.message[2].customer+")")
-	// 					}
-						
-	// 					frm.doc.items.splice(frm.doc.items.length - 1, 1)
-						
-	// 					var grand_total = 0
-	// 					var total_qty = 0
+			},
+			"callback":function(res){
+				console.log(res)
+				if(res.message){
+					if(res.message.allow_credit == 1){
+						console.log("Allow")
+						return
+					}
+					else if(res.message.is_group == 0){
+						frappe.msgprint("Credit Limit Amount Exceeded for Customer - "+frm.doc.customer+" ("+res.message.customer_outstanding+"/"+res.message.credit_limit+")")
+					}
+					else{
+						frappe.msgprint("Credit Limit Amount Exceeded for Customer Group – "+res.message.customer_group +" ("+res.message.group_outstanding+"/"+res.message.credit_limit+")")
+					}
 
-	// 					frm.doc.items.forEach(function(row) {
-	// 						total_qty += row.qty;
-	// 						grand_total += row.base_amount;
-	// 					})
+					frm.doc.items.splice(frm.doc.items.length - 1, 1)
+						
+					var grand_total = 0
+					var total_qty = 0
 
-	// 					frm.doc.total_qty = total_qty;
-	// 					frm.doc.grand_total = grand_total;
-	// 					frm.doc.total = grand_total;
-	// 					frm.refresh_field('total_qty')
-	// 					frm.refresh_field('grand_total')
-	// 					frm.refresh_field('total')
-	// 					frm.refresh_field('items')
-	// 				}				
+					frm.doc.items.forEach(function(row) {
+						total_qty += row.qty;
+						grand_total += row.base_amount;
+					})
+
+					frm.doc.total_qty = total_qty;
+					frm.doc.grand_total = grand_total;
+					frm.doc.total = grand_total;
+					frm.refresh_field('total_qty')
+					frm.refresh_field('grand_total')
+					frm.refresh_field('total')
+					frm.refresh_field('items')
 					
-	// 			}
-	// 		}
-	// 	})
-	// },
+				}
+					// console.log(res)
+				// console.log(frm.doc.items.length)
+				// // console.log(res.message[2].customer_group)
+				// if(res.message){	
+				// 	if(res.message[3] == 0){
+				// 		if(res.message[2].customer_group < res.message[0]){
+				// 			frappe.msgprint("Credit Limit Amount Exceeded for Customer Group – "+res.message[4]+" ("+res.message[0]+"/"+res.message[2].customer_group+")")
+				// 		}
+				// 		else if(res.message[2].customer < res.message[1]){
+				// 			frappe.msgprint("Credit Limit Amount Exceeded for Customer - "+frm.doc.customer+" ("+res.message[1]+"/"+res.message[2].customer+")")
+				// 		}
+						
+				// 		frm.doc.items.splice(frm.doc.items.length - 1, 1)
+						
+				// 		var grand_total = 0
+				// 		var total_qty = 0
+
+				// 		frm.doc.items.forEach(function(row) {
+				// 			total_qty += row.qty;
+				// 			grand_total += row.base_amount;
+				// 		})
+
+				// 		frm.doc.total_qty = total_qty;
+				// 		frm.doc.grand_total = grand_total;
+				// 		frm.doc.total = grand_total;
+				// 		frm.refresh_field('total_qty')
+				// 		frm.refresh_field('grand_total')
+				// 		frm.refresh_field('total')
+				// 		frm.refresh_field('items')
+				// 	}				
+					
+				// }
+			}
+		})
+	},
 	item_code:function(frm,cdt,cdn){
 		var row = locals[cdt][cdn]
 		if(row.item_code){

@@ -189,6 +189,8 @@ def get_place_of_supply(party_details, doctype):
 
 	if address_name:
 		address = frappe.db.get_value("Address", address_name, ["gst_state", "gst_state_number", "gstin"], as_dict=1)
+		# if address:
+		# 	party_details.is_register = address.gst_applicable
 		if address and address.gst_state and address.gst_state_number:
 			party_details.gstin = address.gstin
 			return cstr(address.gst_state_number) + "-" + cstr(address.gst_state)

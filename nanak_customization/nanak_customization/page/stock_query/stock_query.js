@@ -31,10 +31,14 @@ erpnext.StockQuery = class StockQuery {
 					},
 					get_query: () => {
 						return {
-							filters: {
-								"disabled": ["!=", 1]
-							}
+							query: "erpnext.controllers.queries.item_query",
+							filters: {'is_sales_item': 1, 'customer': null}
 						}
+						// return {
+						// 	filters: {
+						// 		"disabled": ["!=", 1]
+						// 	}
+						// }
 					},
 				},
 				{
