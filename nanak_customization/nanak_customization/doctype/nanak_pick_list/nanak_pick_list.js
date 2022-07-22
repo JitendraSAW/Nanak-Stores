@@ -177,14 +177,14 @@ refresh_field("items");
 						if(res.message.is_group == 0){
 							
 							frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
-							location.reload()
+// 							location.reload()
 							
 							// frm.reload_doc()
 							
 						}
 						else{
 							frappe.msgprint("Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
-							location.reload()
+// 							location.reload()
 						}	
 					}
 					// if(res.message){											
