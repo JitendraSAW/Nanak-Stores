@@ -27,6 +27,7 @@ def get_header_data(item_code):
 			`tabItem` i left join `tabItem Tax` it on i.name = it.parent
 			where
 			i.name = %s
+			order by it.valid_from desc
 		""", (pricelist,item_code), as_dict = True)
 
 		return data
