@@ -163,7 +163,7 @@ refresh_field("items");
 	},
 
 	get_customer_credit_days(frm){
-		if(frm.doc.customer){
+		if(frm.doc.customer ){
 			frappe.call({
 				"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_credit_days",
 				"args":{
@@ -175,16 +175,36 @@ refresh_field("items");
 					console.log(res.message)
 					if(res.message){
 						if(res.message.is_group == 0){
+						
+							frm.set_df_property("items","read_only",1)
 							
-							frappe.msgprint("Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
-// 							location.reload()
+							frappe.warn('You cant invoice this customer',
+							"Credit Limit Days Exceeded for Customer - " + frm.doc.customer + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)",
+								() => {
+									location.reload()
+								},
+								'Add Different Customer',
+								true
+							)
 							
-							// frm.reload_doc()
+							
+							
 							
 						}
 						else{
-							frappe.msgprint("Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
-// 							location.reload()
+							
+							frappe.warn('You cant invoice this customer',
+							"Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)",
+								() => {
+									location.reload()
+								},
+								'Add Different Customer',
+								true 
+							)
+							frm.set_df_property("items","read_only",1)
+							frappe.throw("Credit Limit Days Exceeded for Customer Group - " + res.message.customer_group + " (" + res.message.days_from_last_invoice + "/" + res.message.credit_days + " Days)")
+
+							
 						}	
 					}
 					// if(res.message){											
