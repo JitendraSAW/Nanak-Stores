@@ -1556,7 +1556,7 @@ def check_item_stock(item,set_warehouse=None):
 					
 
 			table = table + """</table>"""
-			frappe.msgprint(table)
+			frappe.throw(table)
 			return 0
 
 	else:
@@ -1589,7 +1589,7 @@ def check_item_stock(item,set_warehouse=None):
 			
 
 		table = table + """</table>"""
-		frappe.msgprint(table)
+		frappe.throw(table)
 
 @frappe.whitelist()
 def check_item_stock_bs(item,set_warehouse=None):
