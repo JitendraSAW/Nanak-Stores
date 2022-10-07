@@ -759,9 +759,10 @@ def get_credit_limit_customer_group(customer, company, dict_credit_limit):
 @frappe.whitelist()
 def get_credit_days(customer, company,date=None):
 	dict_credit_days = {}
-	# name = frappe.db.get_value("Allow Credit Limit Item", {'customer': customer}, "name")
-	# frappe.msgprint(str(name))
-	# if name:
+	if date:
+		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': customer}, "name")
+		if name:
+			return
 	# 	frappe.db.delete("Allow Credit Limit Item", {
 	# 		"name": ("=", name)
 	# 	})
@@ -1528,102 +1529,159 @@ def create_stock_reservation(doc):
 
 @frappe.whitelist()
 def check_item_stock(item,set_warehouse=None):
+	warehouse_stock = []
 	if set_warehouse:
 		item_stock = get_stock_balance(item,set_warehouse)
 		if item_stock > 0:
 			return 1
 		else:
 			warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0,"name":["!=",set_warehouse]},["name"])
-			# items_stock_list = []
-			table = """<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3><table class="table"><tr>
-			<th>Warehouse</th>
-			<th>Warehouse Qty</th>
-					
-			</tr>"""
+			
 			for warehouse in warehouse_list:
 				item_stock = get_stock_balance(item,warehouse['name'])
-				
 				if float(item_stock) > 0:
-					# items_stock_list.append({
-					# 	"warehouse":warehouse['name'],
-					# 	"qty":item_stock
-					# })
+					stock = {
+						"warehouse": str(warehouse['name']),
+						"stock": float(item_stock)
+					}
+					warehouse_stock.append(stock)
 			
-					table = table + """<tr>
-					<td>{0}</td>
-					<td>{1}</td>
-					</tr>""".format(str(warehouse['name']),str(item_stock))
-					
-
-			table = table + """</table>"""
-			frappe.throw(table)
-			return 0
-
+			return warehouse_stock
 	else:
 		warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0},["name"])
-		
-		# items_stock_list = []
-		table = """<table class="table"><tr>
-				
-				<th>Warehouse</th>
-				<th>Warehouse Qty</th>
-				<th>Action</th>
-				
-				</tr>"""
+
 		for warehouse in warehouse_list:
 			item_stock = get_stock_balance(item,warehouse['name'])
-			
+
 			if float(item_stock) > 0:
-			# 	items_stock_list.append({
-			# 		"warehouse":warehouse['name'],
-			# 		"qty":item_stock
-			# 	})
+				stock = {
+					"warehouse": str(warehouse['name']),
+					"stock": float(item_stock)
+				}
+				warehouse_stock.append(stock)
+
+		return warehouse_stock
+
+	#------------------code by Raj ---------------------------------------
+	# if set_warehouse:
+	# 	item_stock = get_stock_balance(item,set_warehouse)
+	# 	if item_stock > 0:
+	# 		return 1
+	# 	else:
+	# 		warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0,"name":["!=",set_warehouse]},["name"])
+	# 		# items_stock_list = []
+	# 		table = """<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3><table class="table"><tr>
+	# 		<th>Warehouse</th>
+	# 		<th>Warehouse Qty</th>
+					
+	# 		</tr>"""
+	# 		for warehouse in warehouse_list:
+	# 			item_stock = get_stock_balance(item,warehouse['name'])
+				
+	# 			if float(item_stock) > 0:
+	# 				# items_stock_list.append({
+	# 				# 	"warehouse":warehouse['name'],
+	# 				# 	"qty":item_stock
+	# 				# })
+			
+	# 				table = table + """<tr>
+	# 				<td>{0}</td>
+	# 				<td>{1}</td>
+	# 				</tr>""".format(str(warehouse['name']),str(item_stock))
+					
+
+	# 		table = table + """</table>"""
+	# 		frappe.throw(table)
+	# 		return 0
+
+	# else:
+	# 	warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0},["name"])
+		
+	# 	# items_stock_list = []
+	# 	table = """<table class="table"><tr>
+				
+	# 			<th>Warehouse</th>
+	# 			<th>Warehouse Qty</th>
+	# 			<th>Action</th>
+				
+	# 			</tr>"""
+	# 	for warehouse in warehouse_list:
+	# 		item_stock = get_stock_balance(item,warehouse['name'])
+			
+	# 		if float(item_stock) > 0:
+	# 		# 	items_stock_list.append({
+	# 		# 		"warehouse":warehouse['name'],
+	# 		# 		"qty":item_stock
+	# 		# 	})
 			
 	
-				table = table + """<tr>
-				<td>{0}</td>
-				<td>{1}</td>
-				<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="{0}">Select</button></td>
+	# 			table = table + """<tr>
+	# 			<td>{0}</td>
+	# 			<td>{1}</td>
+	# 			<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="{0}">Select</button></td>
 				
-				</tr>""".format(str(warehouse['name']),str(item_stock))
+	# 			</tr>""".format(str(warehouse['name']),str(item_stock))
 			
 
-		table = table + """</table>"""
-		frappe.throw(table)
+	# 	table = table + """</table>"""
+	# 	frappe.throw(table)
+		#------------------------Code by Raj------------------------------
 
 @frappe.whitelist()
 def check_item_stock_bs(item,set_warehouse=None):
+	warehouse_stock = []
 	if set_warehouse:
 		item_stock = get_stock_balance(item,set_warehouse)
-		# frappe.msgprint(str(item_stock))
 		if item_stock == 0:
-			
 			warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0,"name":["!=",set_warehouse]},["name"])
-			# items_stock_list = []
-			table = """<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3><table class="table"><tr>
-			<th>Warehouse</th>
-			<th>Warehouse Qty</th>					
-			</tr>"""
+
 			for warehouse in warehouse_list:
 				item_stock = get_stock_balance(item,warehouse['name'])
-				
+
 				if float(item_stock) > 0:
-					# items_stock_list.append({
-					# 	"warehouse":warehouse['name'],
-					# 	"qty":item_stock
-					# })
+					stock = {
+					"warehouse": str(warehouse['name']),
+					"stock": float(item_stock)
+					}
+					warehouse_stock.append(stock)
+				
+			return warehouse_stock
+
+	return 0
+	
+	#------------------------Code by Raj------------------------------
+	# if set_warehouse:
+	# 	item_stock = get_stock_balance(item,set_warehouse)
+	# 	# frappe.msgprint(str(item_stock))
+	# 	if item_stock == 0:
 			
-					table = table + """<tr>
-					<td>{0}</td>
-					<td>{1}</td>
+	# 		warehouse_list = frappe.db.get_list("Warehouse",{"is_group":0,"is_reserve_warehouse":0,"name":["!=",set_warehouse]},["name"])
+	# 		# items_stock_list = []
+	# 		table = """<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3><table class="table"><tr>
+	# 		<th>Warehouse</th>
+	# 		<th>Warehouse Qty</th>					
+	# 		</tr>"""
+	# 		for warehouse in warehouse_list:
+	# 			item_stock = get_stock_balance(item,warehouse['name'])
+				
+	# 			if float(item_stock) > 0:
+	# 				# items_stock_list.append({
+	# 				# 	"warehouse":warehouse['name'],
+	# 				# 	"qty":item_stock
+	# 				# })
+			
+	# 				table = table + """<tr>
+	# 				<td>{0}</td>
+	# 				<td>{1}</td>
 					
 					
-					</tr>""".format(str(warehouse['name']),str(item_stock))
+	# 				</tr>""".format(str(warehouse['name']),str(item_stock))
 					
 
-			table = table + """</table>"""
-			frappe.msgprint(table)
-			return 0
+	# 		table = table + """</table>"""
+	# 		frappe.msgprint(table)
+	# 		return 0
+	#------------------------Code by Raj------------------------------
 			
 
 @frappe.whitelist()
