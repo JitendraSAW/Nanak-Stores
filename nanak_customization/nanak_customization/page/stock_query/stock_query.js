@@ -31,8 +31,9 @@ erpnext.StockQuery = class StockQuery {
 					},
 					get_query: () => {
 						return {
-							query: "erpnext.controllers.queries.item_query",
-							filters: {'is_sales_item': 1, 'customer': null}
+							// query: "erpnext.controllers.queries.item_query",
+							query: "nanak_customization.nanak_customization.query.item_query.item_query",
+							filters: {'is_sales_item': 1, 'customer': null, 'has_variants': 0}
 						}
 						// return {
 						// 	filters: {
