@@ -258,6 +258,9 @@ erpnext.StockQuery = class StockQuery {
 				.css({
 					backgroundColor: '#cfcfcf'
 				});
+				$(this.form.wrapper)
+				.find(".input-with-feedback[data-fieldname='item_code']").find("ul").css("min-width", "830px");
+				// $("div[data-fieldname='item_code'] .awesomplete > ul").css("min-width", "830px");
 	}
 	fetch_and_render(){
 		// console.log(this.form.get_value("item_code"));

@@ -39,7 +39,7 @@ doctype_js = {"Sales Order" : "custom_script/sales_order.js",
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 fixtures = [
-	{"dt":"Custom Field", "filters": [["name", "in", ["Sales Invoice-picklist_reference","Stock Entry-picklist_item_reference","Stock Entry-nanak_pick_list","Warehouse-warehouse","Warehouse-is_reserve_warehouse","Sales Order Item-picked_qty","Sales Invoice Item-pick_list_details","Sales Invoice Item-nanak_pick_list","Customer Credit Limit-credit_days"]]]},
+	{"dt":"Custom Field", "filters": [["name", "in", ["Sales Invoice-picklist_reference","Stock Entry-picklist_item_reference","Stock Entry-nanak_pick_list","Warehouse-warehouse","Warehouse-is_reserve_warehouse","Sales Order Item-picked_qty","Sales Invoice Item-pick_list_details","Sales Invoice Item-nanak_pick_list","Customer Credit Limit-credit_days", "Customer-credit_limit_and_amount", "Customer-credit_days", "Customer-column_break_52", "Customer-credit_amount", "Customer Group-credit_limit_and_amount", "Customer Group-credit_days", "Customer Group-column_break_15", "Customer Group-credit_amount"]]]},
 	{"dt":"Stock Entry Type", "filters": [["name", "in", ["Stock Reservation"]]]},
 	{"dt":"Client Script", "filters": [["name", "in", ["Sales Invoice-Form"]]]}
 

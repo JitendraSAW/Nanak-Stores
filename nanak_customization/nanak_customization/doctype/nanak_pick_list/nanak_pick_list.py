@@ -742,16 +742,16 @@ def check_credit_limit_customer_group(customer, company, ignore_outstanding_sale
 # 	return credit_limit
 
 def get_credit_limit_customer(customer, company, dict_credit_limit):
-	credit_limit = flt(frappe.db.get_value("Customer Credit Limit",
-	{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_limit'))
+	credit_limit = flt(frappe.db.get_value("Customer",
+	customer, 'credit_amount'))
 	
 	dict_credit_limit["credit_limit"] = credit_limit
 	return dict_credit_limit
 
 def get_credit_limit_customer_group(customer, company, dict_credit_limit):
 	customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
-	credit_limit = flt(frappe.db.get_value("Customer Credit Limit",
-		{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_limit'))
+	credit_limit = flt(frappe.db.get_value("Customer Group",
+		customer_group, 'credit_amount'))
 
 	dict_credit_limit["credit_limit"] = credit_limit
 	return dict_credit_limit
@@ -845,8 +845,8 @@ def get_credit_days(customer, company,date=None):
 	# 		}
 		
 def check_credit_days_customer(customer, company, dict_credit_days):
-	credit_days = frappe.db.get_value("Customer Credit Limit",
-		{'parent': customer, 'parenttype': 'Customer', 'company': company}, 'credit_days')
+	credit_days = frappe.db.get_value("Customer",
+		customer, 'credit_days')
 
 	if credit_days:
 		days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date from `tabSales Invoice` si where si.customer = %s and si.outstanding_amount > 0 order by si.posting_date asc limit 1", (customer), as_dict = True)
@@ -861,8 +861,8 @@ def check_credit_days_customer(customer, company, dict_credit_days):
 
 def check_credit_days_customer_group(customer, company, dict_credit_days):
 	customer_group = frappe.get_cached_value("Customer", customer, 'customer_group')
-	credit_days = frappe.db.get_value("Customer Credit Limit",
-		{'parent': customer_group, 'parenttype': 'Customer Group', 'company': company}, 'credit_days')
+	credit_days = frappe.db.get_value("Customer Group",
+		customer_group, 'credit_days')
 
 	if credit_days:
 		days_from_last_invoice_raw = frappe.db.sql("select DATEDIFF(CURDATE(),si.posting_date) as date, c.customer_group from `tabSales Invoice` si left join `tabCustomer` c on c.name = si.customer where si.customer in (select c1.name from `tabCustomer` c1 where c1.customer_group = (select c2.customer_group from `tabCustomer` c2 where c2.name = %s)) and si.outstanding_amount > 0 order by si.posting_date asc limit 1", (customer), as_dict =1)

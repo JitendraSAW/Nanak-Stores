@@ -34,6 +34,12 @@ frappe.provide("erpnext.stock.delivery_note");
 frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on("Nanak Pick List", {
+	'onload_post_render': function(frm) {
+        frm.fields_dict.items.grid.wrapper.on('click', 'input[data-fieldname="item_code"][data-doctype="Nanak Pick List Item"]', function(e) {
+            console.log(e.type);
+			$("div[data-fieldname='item_code'] .awesomplete > ul").css("min-width", "830px");
+        });
+    },
 	
 	onload: function() {
 		
