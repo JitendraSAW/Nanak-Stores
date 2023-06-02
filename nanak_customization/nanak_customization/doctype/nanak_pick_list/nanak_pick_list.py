@@ -486,6 +486,8 @@ class NanakPickList(SellingController):
 
 	def on_cancel(self):
 		super(NanakPickList, self).on_cancel()
+		if self.sales_invoice:
+			frappe.throw("Sales Invoice has been created for this Nanak Pick List so you can't cancelled it!")
 		for item in self.items:
 			if item.so_detail:
 				old_picked = frappe.db.get_value("Sales Order Item",item.so_detail,"picked_qty")
