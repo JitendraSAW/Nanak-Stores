@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2022-04-13 19:22:30.747886",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "allow_client"
+ ],
+ "fields": [
+  {
+   "fieldname": "allow_client",
+   "fieldtype": "Table",
+   "label": "Allow Client",
+   "options": "Allow Credit Limit Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-04-19 12:52:05.291051",
+ "modified_by": "Administrator",
+ "module": "Nanak Customization",
+ "name": "Allow Credit Limit",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

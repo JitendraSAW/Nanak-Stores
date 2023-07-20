@@ -14,20 +14,21 @@ class QueryTesting(Document):
 def get_header_data(item_code):
 		# item_code = 'Glass'
 
-		warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+		pricelist = frappe.db.get_single_value("Nanak Standard Settings", "stock_query_pricelist")
 
 		data = frappe.db.sql("""
 			select
 			i.item_name,
-			i.item_group,
-			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = 'Standard Selling' limit 1) as price,
+			i.item_group,i.stock_category,i.company_code,it.item_tax_template,i.stock_uom,
+			(select ip.price_list_rate from `tabItem Price` ip where ip.item_code = i.name and price_list = %s order by creation desc limit 1) as price,
 			i.gst_hsn_code,
 			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
-			`tabItem` i
+			`tabItem` i left join `tabItem Tax` it on i.name = it.parent
 			where
 			i.name = %s
-		""", (item_code), as_dict = True)
+			order by it.valid_from desc
+		""", (pricelist,item_code), as_dict = True)
 
 		return data
 
@@ -37,18 +38,18 @@ def get_same_category(product_id):
 		# if want to omit product mouse
 		ext = " and i.name != '" + product_id + "'"
 
-		product_group = frappe.db.get_value('Item', product_id, 'item_group')
+		product_group = frappe.db.get_value('Item', product_id, 'stock_category')
 
 		data = frappe.db.sql("""
 			select
 			i.name,
 			i.item_name,
 			i.item_group,
-			(select sle.qty_after_transaction from `tabStock Ledger Entry` sle where sle.item_code = i.name and sle.warehouse = 'shop - QM' order by sle.creation desc limit 1) as qty
+			(select sum(sle.actual_qty) from `tabBin` sle where sle.item_code = i.name and sle.warehouse in (select W.name from `tabWarehouse` W where W.is_reserve_warehouse = 0) group by sle.item_code) as qty
 			from
 			`tabItem` i
 			where
-			i.item_group = '%s'
+			i.stock_category = '%s'
 			%s
 			
 		"""% (product_group, ext), as_dict = True)
@@ -104,7 +105,7 @@ def get_godown_wise(product_id):
 					# console("modify reserve").log()
 					
 					for data in warehouse_data:
-						if data['warehouse'] == item.og_warehouse:
+						if data['warehouse'] == item.og_warehouse and data['batch_id'] == item.batch_id:
 							data['reserved'] = item.qty
 				else:
 					# console("append reserve").log()
@@ -119,7 +120,7 @@ def get_godown_wise(product_id):
 					# console("modify qty").log()
 					# console(item).log()
 					for data in warehouse_data:
-						if data['warehouse'] == item.warehouse:
+						if data['warehouse'] == item.warehouse and data['batch_id'] == item.batch_id:
 							data['qty'] = item.qty
 				else:
 					# console("append qty").log()

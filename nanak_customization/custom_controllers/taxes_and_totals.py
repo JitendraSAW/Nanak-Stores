@@ -11,7 +11,7 @@ from erpnext.controllers.accounts_controller import validate_conversion_rate, \
 from erpnext.stock.get_item_details import _get_item_tax_template
 from erpnext.accounts.doctype.pricing_rule.utils import get_applied_pricing_rules
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_exchange_rate
-from console import console
+# from console import console
 class calculate_taxes_and_totals(object):
 	def __init__(self, doc):
         
@@ -398,7 +398,7 @@ class calculate_taxes_and_totals(object):
 				self.doc.rounding_adjustment = diff
 
 	def calculate_totals(self):
-		console(self.doc.get("taxes")).log()
+		# console(self.doc.get("taxes")).log()
 		self.doc.grand_total = flt(self.doc.get("taxes")[-1].total) + flt(self.doc.rounding_adjustment) \
 			if self.doc.get("taxes") else flt(self.doc.net_total)
 
@@ -413,7 +413,7 @@ class calculate_taxes_and_totals(object):
 		else:
 			self.doc.taxes_and_charges_added = self.doc.taxes_and_charges_deducted = 0.0
 			for tax in self.doc.get("taxes"):
-				console(tax.category).log()
+				# console(tax.category).log()
 				if tax.category in ["Valuation and Total", "Total"]:
 					if tax.add_deduct_tax == "Add":
 						self.doc.taxes_and_charges_added += flt(tax.tax_amount_after_discount_amount)
