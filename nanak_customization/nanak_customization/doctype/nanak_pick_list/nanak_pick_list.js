@@ -282,8 +282,41 @@ refresh_field("items");
 			});
 		}
 		
-	}
+	},
+	
 });
+
+frappe.ui.form.on('Nanak Pick List', {
+	refresh(frm) {
+		// your code here
+		if(frm.doc.sales_invoice){
+			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'status')
+			.then(r => {
+				if (r.message.status != "Cancelled"){
+					if(frappe.user_roles.includes("System Manager") === false){
+						console.log("here")
+						cur_frm.page.btn_secondary.hide()
+					}
+				}
+			})
+			
+		}
+		
+	},
+	before_cancel:function(frm){
+		frappe.throw("here")
+		if(frm.doc.sales_invoice){
+			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'status')
+			.then(r => {
+				if (r.message.status != "Cancelled"){
+					frappe.throw("Sales Invoice has been created for this Nanak Pick List so you can't cancelled it!")
+				}
+			})
+			
+		}
+	}
+
+})
 
 frappe.ui.form.on("Nanak Pick List Item", {
 	// Item popup to select
