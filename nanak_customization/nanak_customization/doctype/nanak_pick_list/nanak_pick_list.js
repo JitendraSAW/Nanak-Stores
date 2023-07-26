@@ -263,7 +263,7 @@ refresh_field("items");
 	// },
 
 	refresh: function(frm) {
-		console.log("setup query")
+		// console.log("setup query")
 		if(frm.fields_dict["items"].grid.get_field('item_code')) {
 			frm.set_query("item_code", "items", function() {
 				return {
@@ -290,31 +290,26 @@ frappe.ui.form.on('Nanak Pick List', {
 	refresh(frm) {
 		// your code here
 		if(frm.doc.sales_invoice){
-			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'status')
-			.then(r => {
-				if (r.message.status != "Cancelled"){
-					if(frappe.user_roles.includes("System Manager") === false){
-						console.log("here")
-						cur_frm.page.btn_secondary.hide()
-					}
-				}
-			})
+			if(frappe.user_roles.includes("System Manager") === false){
+				cur_frm.page.btn_secondary.hide()
+			}
 			
 		}
 		
 	},
-	before_cancel:function(frm){
-		frappe.throw("here")
-		if(frm.doc.sales_invoice){
-			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'status')
-			.then(r => {
-				if (r.message.status != "Cancelled"){
-					frappe.throw("Sales Invoice has been created for this Nanak Pick List so you can't cancelled it!")
-				}
-			})
+	// before_cancel:function(frm){
+	// 	frappe.throw("here")
+	// 	if(frm.doc.sales_invoice){
+	// 		frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
+	// 		.then(r => {
+	// 			frappe.throw(r.meessage.docstatus)
+	// 			if (r.message.status != "Cancelled"){
+	// 				frappe.throw("Invoice Raised can not cancelled it!")
+	// 			}
+	// 		})
 			
-		}
-	}
+	// 	}
+	// }
 
 })
 
