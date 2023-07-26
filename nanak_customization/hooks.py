@@ -31,9 +31,9 @@ app_license = "MIT"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Sales Order" : "custom_script/sales_order.js",
-			"Quotation" : "custom_script/quotation.js",
-
+doctype_js = {
+    "Sales Order" : "custom_script/sales_order.js",
+	"Quotation" : "custom_script/quotation.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -102,7 +102,9 @@ fixtures = [
 
 doc_events = {
 	"Sales Invoice": {
-		"on_submit": "nanak_customization.nanak_customization.sales_invoice.after_submit"
+        "validate":"nanak_customization.nanak_customization.sales_invoice.validate",
+		"on_submit": "nanak_customization.nanak_customization.sales_invoice.after_submit",
+        "on_cancel":"nanak_customization.nanak_customization.sales_invoice.on_cancel"
 	}
 }
 
