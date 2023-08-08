@@ -290,20 +290,21 @@ frappe.ui.form.on('Nanak Pick List', {
 	refresh(frm) {
 		// your code here
 		if(frm.doc.sales_invoice){
-			if(frappe.user_roles.includes("System Manager") === false){
-				cur_frm.page.btn_secondary.hide()
-			}
-			
+			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
+			.then(r => {
+				if (r.message.docstatus < 2){
+					cur_frm.page.btn_secondary.hide()
+					// frappe.throw("Invoice Raised can not cancelled it!")
+				}
+			})
 		}
 		
 	},
 	// before_cancel:function(frm){
-	// 	frappe.throw("here")
 	// 	if(frm.doc.sales_invoice){
 	// 		frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
 	// 		.then(r => {
-	// 			frappe.throw(r.meessage.docstatus)
-	// 			if (r.message.status != "Cancelled"){
+	// 			if (int(r.message.docstatus) < 2){
 	// 				frappe.throw("Invoice Raised can not cancelled it!")
 	// 			}
 	// 		})
