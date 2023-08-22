@@ -447,17 +447,33 @@ class NanakPickList(SellingController):
 					d.actual_qty = flt(bin_qty.actual_qty)
 					d.projected_qty = flt(bin_qty.projected_qty)
 	
+	# def update_picked_qty_in_so(self):
+	# 	for item in self.items:
+	# 		if item.so_detail:
+	# 			qty = frappe.db.sql("""select sum(qty) as qty,item_code from `tabNanak Pick List Item` where so_detail = %(so_name)s and docstatus = 1 group by so_detail""",({"so_name":item.so_detail}),as_dict=1)
+	# 			# frappe.throw(str(qty))
+	# 			# updated = float(qty[0][0]) + float(item.qty)
+	# 			# frappe.msgprint(str(qty))
+	# 			# frappe.msgprint(str(updated))
+	# 			# frappe.msgprint(str(item.so_detail))
+	# 			frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",qty[0]['qty'])
+	# 	frappe.db.commit()
+
 	def update_picked_qty_in_so(self):
 		for item in self.items:
 			if item.so_detail:
-				qty = frappe.db.sql("""select sum(qty) as qty,item_code from `tabNanak Pick List Item` where so_detail = %(so_name)s and docstatus = 1 group by so_detail""",({"so_name":item.so_detail}),as_dict=1)
-				# frappe.throw(str(qty))
-				# updated = float(qty[0][0]) + float(item.qty)
-				# frappe.msgprint(str(qty))
-				# frappe.msgprint(str(updated))
-				# frappe.msgprint(str(item.so_detail))
-				frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",qty[0]['qty'])
+				qty_list = frappe.db.sql("""
+					SELECT SUM(qty) AS qty, item_code
+					FROM `tabNanak Pick List Item`
+					WHERE so_detail = %(so_name)s AND docstatus = 1
+					GROUP BY so_detail
+				""", {"so_name": item.so_detail}, as_dict=True)
+				if qty_list:
+					picked_qty = qty_list[0]['qty']
+					frappe.db.set_value("Sales Order Item", item.so_detail, "picked_qty", picked_qty)
+			
 		frappe.db.commit()
+	
 
 	def before_submit(self):
 		name = frappe.db.get_value("Allow Credit Limit Item", {'customer': self.customer}, "name")
@@ -484,11 +500,13 @@ class NanakPickList(SellingController):
 					frappe.throw("Credit Limit Amount Exceeded for Customer - "+ credit_limit_data['customer_group'] + " ("+str(credit_limit_data['group_outstanding'])+"/"+str(credit_limit_data['credit_limit'])+")")
 
 
-		self.update_picked_qty_in_so()
+		
 		create_stock_reservation(self)
 		
 
-	
+	def on_submit(self):
+		self.update_picked_qty_in_so()
+
 
 	def on_cancel(self):
 		super(NanakPickList, self).on_cancel()
