@@ -287,30 +287,45 @@ refresh_field("items");
 });
 
 frappe.ui.form.on('Nanak Pick List', {
-	refresh(frm) {
-		// your code here
+	// refresh(frm) {
+	// 	// your code here
+	// 	if(frm.doc.sales_invoice){
+	// 		frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
+	// 		.then(r => {
+	// 			if (r.message.docstatus < 2){
+	// 				cur_frm.page.btn_secondary.hide()
+	// 				// frappe.throw("Invoice Raised can not cancelled it!")
+	// 			}
+	// 		})
+	// 	}
+		
+	// },
+	// onload(frm){
+	// 	if(frm.doc.sales_invoice){
+			// frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
+			// .then(r => {
+			// 	if (r.message.docstatus < 2){
+			// 		cur_frm.page.btn_secondary.hide()
+			// 		// frappe.throw("Invoice Raised can not cancelled it!")
+			// 	}
+			// })
+	// 	}
+
+	// }
+	before_cancel:function(frm){
+		// frappe.throw("In Before Cancel Event")
 		if(frm.doc.sales_invoice){
 			frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
 			.then(r => {
 				if (r.message.docstatus < 2){
-					cur_frm.page.btn_secondary.hide()
-					// frappe.throw("Invoice Raised can not cancelled it!")
+					// cur_frm.page.btn_secondary.hide()
+					frappe.throw("Invoice Raised can not cancelled it!")
 				}
 			})
-		}
-		
-	},
-	// before_cancel:function(frm){
-	// 	if(frm.doc.sales_invoice){
-	// 		frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
-	// 		.then(r => {
-	// 			if (int(r.message.docstatus) < 2){
-	// 				frappe.throw("Invoice Raised can not cancelled it!")
-	// 			}
-	// 		})
+	
 			
-	// 	}
-	// }
+		}
+	}
 
 })
 
