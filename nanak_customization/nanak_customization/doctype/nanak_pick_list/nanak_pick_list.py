@@ -347,11 +347,12 @@ class NanakPickList(SellingController):
 				if not d.against_sales_order:
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
 
-	# def before_cancel(self):
-	# 	if self.sales_invoice:
-	# 		sales_invoice_status = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
-	# 		if cint(sales_invoice_status)<2:
-	# 			frappe.throw("Invoice Raised Can Not Cancelled It!")		
+	def before_cancel(self):
+		# frappe.throw("Invoice Raised Can Not Cancelled It!")		
+		if self.sales_invoice:
+			sales_invoice_status = frappe.db.get_value('Sales Invoice', self.sales_invoice, 'docstatus')
+			if cint(sales_invoice_status)<2:
+				frappe.throw("Invoice Raised Can Not Cancelled It!")		
 
 	def validate(self):
 
@@ -509,7 +510,7 @@ class NanakPickList(SellingController):
 
 
 	def on_cancel(self):
-		super(NanakPickList, self).on_cancel()
+		# super(NanakPickList, self).on_cancel()
 		for item in self.items:
 			if item.so_detail:
 				old_picked = frappe.db.get_value("Sales Order Item",item.so_detail,"picked_qty")
