@@ -448,17 +448,6 @@ class NanakPickList(SellingController):
 					d.actual_qty = flt(bin_qty.actual_qty)
 					d.projected_qty = flt(bin_qty.projected_qty)
 	
-	# def update_picked_qty_in_so(self):
-	# 	for item in self.items:
-	# 		if item.so_detail:
-	# 			qty = frappe.db.sql("""select sum(qty) as qty,item_code from `tabNanak Pick List Item` where so_detail = %(so_name)s and docstatus = 1 group by so_detail""",({"so_name":item.so_detail}),as_dict=1)
-	# 			# frappe.throw(str(qty))
-	# 			# updated = float(qty[0][0]) + float(item.qty)
-	# 			# frappe.msgprint(str(qty))
-	# 			# frappe.msgprint(str(updated))
-	# 			# frappe.msgprint(str(item.so_detail))
-	# 			frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",qty[0]['qty'])
-	# 	frappe.db.commit()
 
 	def update_picked_qty_in_so(self):
 		for item in self.items:
@@ -471,7 +460,8 @@ class NanakPickList(SellingController):
 				""", {"so_name": item.so_detail}, as_dict=True)
 				if qty_list:
 					picked_qty = qty_list[0]['qty']
-					frappe.db.set_value("Sales Order Item", item.so_detail, "picked_qty", picked_qty)
+					# frappe.db.set_value("Sales Order Item", item.so_detail, "picked_qty", picked_qty)
+					frappe.db.set_value("Sales Order Item", item.so_detail, "custom_picked_qty", picked_qty)
 			
 		frappe.db.commit()
 	
@@ -511,11 +501,17 @@ class NanakPickList(SellingController):
 
 	def on_cancel(self):
 		# super(NanakPickList, self).on_cancel()
+		# for item in self.items:
+		# 	if item.so_detail:
+		# 		old_picked = frappe.db.get_value("Sales Order Item",item.so_detail,"picked_qty")
+		# 		frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",float(old_picked) - float(item.qty))			
+		# 		frappe.db.set_value("Nanak Pick List Item",item.name,"dereserved",1)
+
 		for item in self.items:
 			if item.so_detail:
-				old_picked = frappe.db.get_value("Sales Order Item",item.so_detail,"picked_qty")
-				frappe.db.set_value("Sales Order Item",item.so_detail,"picked_qty",float(old_picked) - float(item.qty))			
-				frappe.db.set_value("Nanak Pick List Item",item.name,"dereserved",1)
+				old_picked = frappe.db.get_value("Sales Order Item",item.so_detail,"custom_picked_qty")
+				frappe.db.set_value("Sales Order Item",item.so_detail,"custom_picked_qty",float(old_picked) - float(item.qty))			
+				frappe.db.set_value("Nanak Pick List Item",item.name,"dereserved",1)		
 
 		# self.check_sales_order_on_hold_or_close("against_sales_order")
 		# self.check_next_docstatus()
@@ -1450,9 +1446,13 @@ def make_pick_list(source_name, target_doc=None, skip_item_mapping=False):
 			target.update(get_fetch_values("Nanak Pick List", 'company_address', target.company_address))
 
 	def update_item(source, target, source_parent):
-		target.base_amount = (flt(source.qty) - flt(source.picked_qty)) * flt(source.base_rate)
-		target.amount = (flt(source.qty) - flt(source.picked_qty)) * flt(source.rate)
-		target.qty = flt(source.qty) - flt(source.picked_qty)
+		# target.base_amount = (flt(source.qty) - flt(source.picked_qty)) * flt(source.base_rate)
+		# target.amount = (flt(source.qty) - flt(source.picked_qty)) * flt(source.rate)
+		# target.qty = flt(source.qty) - flt(source.picked_qty)
+
+		target.base_amount = (flt(source.qty) - flt(source.custom_picked_qty)) * flt(source.base_rate)
+		target.amount = (flt(source.qty) - flt(source.custom_picked_qty)) * flt(source.rate)
+		target.qty = flt(source.qty) - flt(source.custom_picked_qty)
 
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
@@ -1501,8 +1501,11 @@ def dereserve_stock(item_reference,so_detail=None,curr_qty=None):
 	if stock_entry_doc:
 		stock_entry_doc.cancel()
 		if so_detail:
-			old_picked = frappe.db.get_value("Sales Order Item",so_detail,"picked_qty")
-			frappe.db.set_value("Sales Order Item",so_detail,"picked_qty",float(old_picked) - float(curr_qty))
+			# old_picked = frappe.db.get_value("Sales Order Item",so_detail,"picked_qty")
+			# frappe.db.set_value("Sales Order Item",so_detail,"picked_qty",float(old_picked) - float(curr_qty))
+
+			old_picked = frappe.db.get_value("Sales Order Item",so_detail,"custom_picked_qty")
+			frappe.db.set_value("Sales Order Item",so_detail,"custom_picked_qty",float(old_picked) - float(curr_qty))
 
 		
 		
