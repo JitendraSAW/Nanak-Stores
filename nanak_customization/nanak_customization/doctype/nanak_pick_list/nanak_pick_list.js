@@ -1,13 +1,7 @@
-// Copyright (c) 2022, Raaj Tailor and contributors
-// For license information, please see license.txt
-
-
-
 
 {% include 'erpnext/selling/sales_common.js' %};
-
-
-
+const SALES_DOCTYPES = ["Quotation", "Sales Order", "Delivery Note", "Sales Invoice"];
+const PURCHASE_DOCTYPES = ["Supplier Quotation", "Purchase Order", "Purchase Receipt", "Purchase Invoice"];
 
 //Set Warehouse on popup button click
   $(document).on('click', '.add-warehouse', function(){
@@ -36,7 +30,7 @@ frappe.provide("erpnext.accounts.dimensions");
 frappe.ui.form.on("Nanak Pick List", {
 	'onload_post_render': function(frm) {
         frm.fields_dict.items.grid.wrapper.on('click', 'input[data-fieldname="item_code"][data-doctype="Nanak Pick List Item"]', function(e) {
-            console.log(e.type);
+            // console.log(e.type);
 			$("div[data-fieldname='item_code'] .awesomplete > ul").css("min-width", "830px");
         });
     },
@@ -49,7 +43,7 @@ frappe.ui.form.on("Nanak Pick List", {
 		if(frm.doc.is_pos){
 			frappe.db.get_doc('Mode of Payment', 'Cash')
 			.then(doc => {
-				console.log(doc)
+				// console.log(doc)
 				if(doc){
 					var newrow = frappe.model.add_child(frm.doc, "Nanak Pick List Payments", "payments");
 					newrow.mode_of_payment = doc.mode_of_payment
@@ -653,11 +647,12 @@ var change_color_code = function (frm) {
 	});
   };
 
-erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
+// erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
+erpnext.stock.NanakPickList = class NanakPickList extends erpnext.selling.SellingController {
 	//override tranasction.js methods
 	
 
-	item_code: function(doc, cdt, cdn) {
+	item_code(doc, cdt, cdn) {
 		var me = this;
 		var item = frappe.get_doc(cdt, cdn);
 		var update_stock = 0, show_batch_dialog = 0;
@@ -814,9 +809,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 				});
 			}
 		}
-	},
+	}
 
-	get_last_discount:function(frm,cdt,cdn){
+	get_last_discount(frm,cdt,cdn){
 		var item = locals[cdt][cdn]
 		frappe.call({
             method: "nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.get_discount",
@@ -836,9 +831,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 
             }
         })
-	},
+	}
 
-	price_list_rate: function(doc, cdt, cdn) {
+	price_list_rate(doc, cdt, cdn) {
 		var item = frappe.get_doc(cdt, cdn);
 		frappe.model.round_floats_in(item, ["price_list_rate", "discount_percentage"]);
 
@@ -850,9 +845,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 				precision("rate", item));
 
 		this.calculate_taxes_and_totals();
-	},
+	}
 
-	company: function() {
+	company() {
 		var me = this;
 		var set_pricing = function() {
 			if(me.frm.doc.company && me.frm.fields_dict.currency) {
@@ -956,9 +951,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 		if(this.frm.doc.company) {
 			erpnext.last_selected_company = this.frm.doc.company;
 		}
-	},
+	}
 
-	set_margin_amount_based_on_currency: function(exchange_rate) {
+	set_margin_amount_based_on_currency(exchange_rate) {
 		if (in_list(["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "Purchase Invoice", "Purchase Order", "Purchase Receipt","Nanak Pick List"]), this.frm.doc.doctype) {
 			var me = this;
 			$.each(this.frm.doc.items || [], function(i, d) {
@@ -968,9 +963,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 				}
 			});
 		}
-	},
+	}
 
-	get_exchange_rate: function(transaction_date, from_currency, to_currency, callback) {
+	get_exchange_rate(transaction_date, from_currency, to_currency, callback) {
 		var args;
 		if (["Quotation", "Sales Order", "Delivery Note", "Sales Invoice","Nanak Pick List"].includes(this.frm.doctype)) {
 			args = "for_selling";
@@ -994,9 +989,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 				callback(flt(r.message));
 			}
 		});
-	},
+	}
 
-	_get_item_list: function(item) {
+	_get_item_list(item) {
 		var item_list = [];
 		var append_item = function(d) {
 			if (d.item_code) {
@@ -1037,13 +1032,13 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 			});
 		}
 		return item_list;
-	},
+	}
 
 	//override tranasction.js methods
 
 
 	//override method of taxes and totals
-	calculate_taxes_and_totals: function(update_paid_amount) {
+	calculate_taxes_and_totals(update_paid_amount) {
 		this.discount_amount_applied = false;
 		this._calculate_taxes_and_totals();
 		this.calculate_discount_amount();
@@ -1072,9 +1067,9 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 		}
 
 		this.frm.refresh_fields();
-	},
+	}
 
-	calculate_totals: function() {
+	calculate_totals() {
 		// Changing sequence can because of rounding adjustment issue and on-screen discrepancy
 		var me = this;
 		var tax_count = this.frm.doc["taxes"] ? this.frm.doc["taxes"].length : 0;
@@ -1120,20 +1115,20 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 
 		// rounded totals
 		this.set_rounded_total();
-	},
+	}
 	//override method of taxes and totals
 	
 // Override logic for all by default function
 // Wherever Delivery note appear in method, add nanak picklist to run same function in picklist 
 
-	setup: function(doc) {
+	setup(doc) {
 		this.setup_posting_date_time_check();
-		this._super(doc);
+		super.setup(doc);
 		
-	},
-	refresh: function(doc, dt, dn) {
+	}
+	refresh(doc, dt, dn) {
 		var me = this;
-		this._super();		
+		super.refresh();	
 
 		if (doc.docstatus > 0) {
 			this.show_stock_ledger();
@@ -1157,25 +1152,27 @@ erpnext.stock.NanakPickList = erpnext.selling.SellingController.extend({
 		erpnext.stock.delivery_note.set_print_hide(doc, dt, dn);
 
 		
-	},
-	make_sales_invoice: function() {
+	}
+	make_sales_invoice() {
 		frappe.model.open_mapped_doc({
 			method: "nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.make_sales_invoice",
 			frm: this.frm
 		})
-	},	
-	tc_name: function() {
+	}	
+	tc_name() {
 		this.get_terms();
-	},
-	items_on_form_rendered: function(doc, grid_row) {
+	}
+	items_on_form_rendered(doc, grid_row) {
 		erpnext.setup_serial_or_batch_no();
-	},
-	packed_items_on_form_rendered: function(doc, grid_row) {
+	}
+	packed_items_on_form_rendered(doc, grid_row) {
 		erpnext.setup_serial_or_batch_no();
-	},
-});
+	}
+// });
+}
 
-$.extend(cur_frm.cscript, new erpnext.stock.NanakPickList({frm: cur_frm}));
+extend_cscript(cur_frm.cscript, new erpnext.stock.NanakPickList({frm: cur_frm}));
+// $.extend(cur_frm.cscript, new erpnext.stock.NanakPickList({frm: cur_frm}));
 
 frappe.ui.form.on('Nanak Pick List', {
 	setup: function(frm) {
@@ -1267,91 +1264,93 @@ erpnext.show_serial_batch_selector = function (frm, d, callback, on_close, show_
 }
 
 
-var get_party_details = function(frm, method, args, callback) {
-	// console.log("party details")
+var get_party_details = function (frm, method, args, callback) {
 	if (!method) {
 		method = "erpnext.accounts.party.get_party_details";
 	}
 
-	if (args) {
-		if (in_list(['Sales Invoice', 'Sales Order', 'Nanak Pick List'], frm.doc.doctype)) {
-			if (frm.doc.company_address && (!args.company_address)) {
-				args.company_address = frm.doc.company_address;
-			}
-		}
-
-		if (in_list(['Purchase Invoice', 'Purchase Order', 'Purchase Receipt'], frm.doc.doctype)) {
-			if (frm.doc.shipping_address && (!args.shipping_address)) {
-				args.shipping_address = frm.doc.shipping_address;
-			}
-		}
-	}
-
 	if (!args) {
-		if ((frm.doctype != "Purchase Order" && frm.doc.customer)
-			|| (frm.doc.party_name && in_list(['Quotation', 'Opportunity'], frm.doc.doctype))) {
-
+		if (
+			(frm.doctype != "Purchase Order" && frm.doc.customer) ||
+			(frm.doc.party_name && in_list(["Quotation", "Opportunity","Nanak Pick List"], frm.doc.doctype))
+		) {
 			let party_type = "Customer";
-			if (frm.doc.quotation_to && frm.doc.quotation_to === "Lead") {
-				party_type = "Lead";
+			if (frm.doc.quotation_to && in_list(["Lead", "Prospect"], frm.doc.quotation_to)) {
+				party_type = frm.doc.quotation_to;
 			}
 
 			args = {
 				party: frm.doc.customer || frm.doc.party_name,
 				party_type: party_type,
-				price_list: frm.doc.selling_price_list
+				price_list: frm.doc.selling_price_list,
 			};
 		} else if (frm.doc.supplier) {
 			args = {
 				party: frm.doc.supplier,
 				party_type: "Supplier",
 				bill_date: frm.doc.bill_date,
-				price_list: frm.doc.buying_price_list
+				price_list: frm.doc.buying_price_list,
 			};
 		}
 
-		if (in_list(['Sales Invoice', 'Sales Order', 'Nanak Pick List'], frm.doc.doctype)) {
-			if (!args) {
+		if (!args) {
+			if (in_list(["Nanak Pick List"], frm.doc.doctype)) {
 				args = {
 					party: frm.doc.customer || frm.doc.party_name,
-					party_type: 'Customer'
-				}
-			}
-			if (frm.doc.company_address && (!args.company_address)) {
-				args.company_address = frm.doc.company_address;
+					party_type: "Customer",
+				};
 			}
 
-			if (frm.doc.shipping_address_name &&(!args.shipping_address_name)) {
-				args.shipping_address_name = frm.doc.shipping_address_name;
-			}
-		}
-
-		if (in_list(['Purchase Invoice', 'Purchase Order', 'Purchase Receipt'], frm.doc.doctype)) {
-			if (!args) {
+			if (in_list(PURCHASE_DOCTYPES, frm.doc.doctype)) {
 				args = {
 					party: frm.doc.supplier,
-					party_type: 'Supplier'
-				}
-			}
-
-			if (frm.doc.shipping_address && (!args.shipping_address)) {
-				args.shipping_address = frm.doc.shipping_address;
+					party_type: "Supplier",
+				};
 			}
 		}
 
-		if (args) {
-			args.posting_date = frm.doc.posting_date || frm.doc.transaction_date;
-			args.fetch_payment_terms_template = cint(!frm.doc.ignore_default_payment_terms_template);
+		if (!args || !args.party) return;
+
+		args.posting_date = frm.doc.posting_date || frm.doc.transaction_date;
+		args.fetch_payment_terms_template = cint(!frm.doc.ignore_default_payment_terms_template);
+	}
+
+	if (in_list(["Nanak Pick List"], frm.doc.doctype)) {
+		if (!args.company_address && frm.doc.company_address) {
+			args.company_address = frm.doc.company_address;
 		}
 	}
-	if (!args || !args.party) return;
+
+	if (in_list(PURCHASE_DOCTYPES, frm.doc.doctype)) {
+		if (!args.company_address && frm.doc.billing_address) {
+			args.company_address = frm.doc.billing_address;
+		}
+
+		if (!args.shipping_address && frm.doc.shipping_address) {
+			args.shipping_address = frm.doc.shipping_address;
+		}
+	}
 
 	if (frappe.meta.get_docfield(frm.doc.doctype, "taxes")) {
-		if (!erpnext.utils.validate_mandatory(frm, "Posting / Transaction Date",
-			args.posting_date, args.party_type=="Customer" ? "customer": "supplier")) return;
+		if (
+			!erpnext.utils.validate_mandatory(
+				frm,
+				"Posting / Transaction Date",
+				args.posting_date,
+				args.party_type == "Customer" ? "customer" : "supplier"
+			)
+		)
+			return;
 	}
 
-	if (!erpnext.utils.validate_mandatory(frm, "Company", frm.doc.company, args.party_type=="Customer" ? "customer": "supplier")) {
+	if (
+		!erpnext.utils.validate_mandatory(
+			frm,
+			"Company",
+			frm.doc.company,
+			args.party_type == "Customer" ? "customer" : "supplier"
+		)
+	) {
 		return;
 	}
 
@@ -1361,7 +1360,7 @@ var get_party_details = function(frm, method, args, callback) {
 	frappe.call({
 		method: method,
 		args: args,
-		callback: function(r) {
+		callback: function (r) {
 			if (r.message) {
 				frm.supplier_tds = r.message.supplier_tds;
 				frm.updating_party_details = true;
@@ -1372,12 +1371,12 @@ var get_party_details = function(frm, method, args, callback) {
 						if (callback) callback();
 						frm.refresh();
 						erpnext.utils.add_item(frm);
-					}
+					},
 				]);
 			}
-		}
+		},
 	});
-}
+};
 
 
 
@@ -1388,7 +1387,7 @@ var get_party_details = function(frm, method, args, callback) {
 frappe.ui.form.on("Nanak Pick List", {
 	onload:function(frm){
 		frappe.call({
-			"method":"nanak_customization.nanak_customization.regional_utils.get_gstins_for_company",
+			"method":"nanak_customization.nanak_customization.regional_utils_v14.get_gstins_for_company",
 			"args":{
 				
 			},
@@ -1434,7 +1433,8 @@ frappe.ui.form.on("Nanak Pick List", {
 		};
 
 		frappe.call({
-			method: 'nanak_customization.nanak_customization.regional_utils.get_regional_address_details',
+			
+			method: 'india_compliance.gst_india.overrides.transaction.get_gst_details',
 			args: {
 				party_details: JSON.stringify(party_details),
 				doctype: frm.doc.doctype,
