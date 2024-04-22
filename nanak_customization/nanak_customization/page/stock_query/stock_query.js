@@ -276,7 +276,7 @@ erpnext.StockQuery = class StockQuery {
 	async set_header_values(item_code){
 		// console.log(this.form.fields[1])
 		var res = await get_header_list(item_code)
-		console.log(res)
+		// console.log(res)
 		this.form.set_value("stock_uom",res.message[0].stock_uom)
 		this.form.set_value("stock_category",res.message[0].stock_category)
 		this.form.set_value("company_code",res.message[0].company_code)
@@ -291,11 +291,11 @@ erpnext.StockQuery = class StockQuery {
 		if(item_code){
 
 		var res = await get_warehouse_stock(item_code)
-		console.log(res)
+		// console.log(res)
 		var html_content = '';
 		html_content += '<div class="frappe-card"><h4>Stock</h4><table class="table"><thead><tr><th>Warehouse</th><th>Batch/Serial No</th><th>Open Qty</th><th>Reserve Qty</th></tr></thead><tbody>';
 		res.message[0].forEach(i =>{
-			console.log(i)
+			// console.log(i)
 			if(res.message[1].has_serial_no){
 				html_content +=
 			'<tr>' +
@@ -336,7 +336,7 @@ erpnext.StockQuery = class StockQuery {
 	}
 	async set_similar_stock(item_code){
 		var res = await get_similar_items(item_code)
-		// console.log(res.message)
+		console.log("similar_item"+res.message)
 		var html_content = '';
 		html_content += '<div class="frappe-card">' +
 			'<h4>Same Category Items</h4>' +
