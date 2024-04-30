@@ -200,7 +200,7 @@ def get_godown_wise(product_id):
         SELECT wh.is_reserve_warehouse, wh.warehouse AS og_warehouse, sn.serial_no, wh.name AS warehouse 
         FROM `tabWarehouse` wh 
         INNER JOIN `tabSerial No` sn ON wh.name = sn.warehouse 
-        WHERE sn.item_code = %s AND sn.status = 'Active' AND wh.qty > 0
+        WHERE sn.item_code = %s AND sn.status = 'Active'
         """, product_id, as_dict=1)
         for item in actual_data:
             if item.is_reserve_warehouse:
