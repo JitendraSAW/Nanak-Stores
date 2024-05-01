@@ -1,6 +1,6 @@
 
 {% include 'erpnext/selling/sales_common.js' %};
-const SALES_DOCTYPES = ["Quotation", "Sales Order", "Delivery Note", "Sales Invoice"];
+const SALES_DOCTYPES = ["Quotation", "Sales Order", "Delivery Note", "Sales Invoice","Nanak Pick List"];
 const PURCHASE_DOCTYPES = ["Supplier Quotation", "Purchase Order", "Purchase Receipt", "Purchase Invoice"];
 
 //Set Warehouse on popup button click
@@ -181,7 +181,7 @@ refresh_field("items");
 					"date":frm.doc.posting_date
 				},
 				"callback":function(res){
-					console.log(res.message)
+					
 					if(res.message){
 						if(res.message.is_group == 0){
 						
@@ -1265,6 +1265,7 @@ erpnext.show_serial_batch_selector = function (frm, d, callback, on_close, show_
 
 
 var get_party_details = function (frm, method, args, callback) {
+	
 	if (!method) {
 		method = "erpnext.accounts.party.get_party_details";
 	}
@@ -1272,7 +1273,7 @@ var get_party_details = function (frm, method, args, callback) {
 	if (!args) {
 		if (
 			(frm.doctype != "Purchase Order" && frm.doc.customer) ||
-			(frm.doc.party_name && in_list(["Quotation", "Opportunity","Nanak Pick List"], frm.doc.doctype))
+			(frm.doc.party_name && in_list(["Quotation", "Opportunity"], frm.doc.doctype))
 		) {
 			let party_type = "Customer";
 			if (frm.doc.quotation_to && in_list(["Lead", "Prospect"], frm.doc.quotation_to)) {
@@ -1294,7 +1295,7 @@ var get_party_details = function (frm, method, args, callback) {
 		}
 
 		if (!args) {
-			if (in_list(["Nanak Pick List"], frm.doc.doctype)) {
+			if (in_list(SALES_DOCTYPES, frm.doc.doctype)) {
 				args = {
 					party: frm.doc.customer || frm.doc.party_name,
 					party_type: "Customer",
@@ -1315,7 +1316,7 @@ var get_party_details = function (frm, method, args, callback) {
 		args.fetch_payment_terms_template = cint(!frm.doc.ignore_default_payment_terms_template);
 	}
 
-	if (in_list(["Nanak Pick List"], frm.doc.doctype)) {
+	if (in_list(SALES_DOCTYPES, frm.doc.doctype)) {
 		if (!args.company_address && frm.doc.company_address) {
 			args.company_address = frm.doc.company_address;
 		}
@@ -1434,7 +1435,7 @@ frappe.ui.form.on("Nanak Pick List", {
 
 		frappe.call({
 			
-			method: 'india_compliance.gst_india.overrides.transaction.get_gst_details',
+			method: 'nanak_customization.custom_controllers.tarnsaction.get_gst_details',
 			args: {
 				party_details: JSON.stringify(party_details),
 				doctype: frm.doc.doctype,
@@ -1442,8 +1443,9 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			debounce: 2000,
 			callback: function(r) {
-				console.log(r)
+				
 				if(r.message) {
+					
 					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
 					frm.set_value('taxes', r.message.taxes);
 					frm.set_value('place_of_supply', r.message.place_of_supply);
