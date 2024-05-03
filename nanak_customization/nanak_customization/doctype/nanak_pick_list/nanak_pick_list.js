@@ -1430,7 +1430,8 @@ frappe.ui.form.on("Nanak Pick List", {
 			'supplier': frm.doc.supplier,
 			'supplier_gstin': frm.doc.supplier_gstin,
 			'company_gstin': frm.doc.company_gstin,
-			'tax_category': frm.doc.tax_category
+			'tax_category': frm.doc.tax_category,
+			'billing_address_gstin': frm.doc.billing_address_gstin,
 		};
 
 		frappe.call({
