@@ -13,7 +13,7 @@ from india_compliance.gst_india.constants import (
 )
 
 @frappe.whitelist()
-def get_gst_details(party_details, doctype, company, *, update_place_of_supply=False):
+def get_gst_details(party_details, doctype, company, *, update_place_of_supply=True):
     """
     This function does not check for permissions since it returns insensitive data
     based on already sensitive input (party details)
@@ -42,8 +42,10 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=F
     gst_details.place_of_supply = (
         party_details.place_of_supply
         if (not update_place_of_supply and party_details.place_of_supply)
-        else get_place_of_supply(party_details, doctype)
+        else get_place_of_supply_nanak(party_details)
     )
+
+    frappe.msgprint(f"GST Details: {gst_details}")
 
     if is_sales_transaction:
         source_gstin = party_details.company_gstin
@@ -216,3 +218,9 @@ def get_source_state_code(doc):
         )
 
     return (doc.supplier_gstin or doc.company_gstin)[:2]
+
+def get_place_of_supply_nanak(party_details):
+    billing_address = party_details.get("customer_address")
+    state_code = frappe.db.get_value("Address", billing_address, "gst_state")
+    gst_state_number = frappe.db.get_value("Address", billing_address, "gst_state_number")
+    return f"{state_code}-{gst_state_number}"
