@@ -45,7 +45,7 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=T
         else get_place_of_supply_nanak(party_details)
     )
 
-    frappe.msgprint(f"GST Details: {gst_details}")
+    
 
     if is_sales_transaction:
         source_gstin = party_details.company_gstin
