@@ -39,6 +39,7 @@
   "customer_address",
   "tax_id",
   "address_display",
+  "billing_address_gstin",
   "company_address",
   "company_address_display",
   "currency_and_price_list",
@@ -1285,6 +1286,7 @@
    "label": "place_of_supply"
   },
   {
+   "fetch_from": "company_address.gstin",
    "fieldname": "company_gstin",
    "fieldtype": "Data",
    "label": "Company GSTIN",
@@ -1356,15 +1358,22 @@
    "fieldname": "sales_invoice_details_section",
    "fieldtype": "Section Break",
    "label": "Sales Invoice Details"
+  },
+  {
+   "fetch_from": "customer_address.gstin",
+   "fieldname": "billing_address_gstin",
+   "fieldtype": "Data",
+   "label": "billing_address_gstin"
   }
  ],
  "icon": "fa fa-truck",
  "is_submittable": 1,
  "links": [],
- "modified": "2022-04-25 19:59:49.573573",
+ "modified": "2024-05-03 19:24:36.936983",
  "modified_by": "Administrator",
  "module": "Nanak Customization",
  "name": "Nanak Pick List",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -1425,6 +1434,7 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "timeline_field": "customer",
  "title_field": "title",
  "track_changes": 1,

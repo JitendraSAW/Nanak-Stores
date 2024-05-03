@@ -42,7 +42,7 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=T
     gst_details.place_of_supply = (
         party_details.place_of_supply
         if (not update_place_of_supply and party_details.place_of_supply)
-        else get_place_of_supply_nanak(party_details)
+        else get_place_of_supply(party_details,doctype)
     )
 
     
@@ -115,7 +115,7 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=T
     if not gst_details.place_of_supply or not party_details.company_gstin:
         return gst_details
 
-    if default_tax := get_tax_template(
+    default_tax = get_tax_template(
         master_doctype,
         company,
         is_inter_state_supply(
@@ -126,7 +126,9 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=T
         ),
         party_details.company_gstin[:2],
         party_details.is_reverse_charge,
-    ):
+    )
+    if default_tax:
+        
         gst_details.taxes_and_charges = default_tax
         gst_details.taxes = get_taxes_and_charges(master_doctype, default_tax)
 
@@ -170,6 +172,7 @@ def get_tax_template_based_on_category(master_doctype, company, party_details):
 def get_tax_template(
     master_doctype, company, is_inter_state, state_code, is_reverse_charge
 ):
+   
     tax_categories = frappe.get_all(
         "Tax Category",
         fields=["name", "is_inter_state", "gst_state"],
@@ -183,9 +186,12 @@ def get_tax_template(
     default_tax = ""
 
     for tax_category in tax_categories:
+        
+       
         if STATE_NUMBERS.get(tax_category.gst_state) == state_code or (
             not default_tax and not tax_category.gst_state
         ):
+            
             default_tax = frappe.db.get_value(
                 master_doctype,
                 {"company": company, "disabled": 0, "tax_category": tax_category.name},
@@ -194,6 +200,7 @@ def get_tax_template(
     return default_tax
 
 def is_inter_state_supply(doc):
+    
     return doc.gst_category == "SEZ" or (
         doc.place_of_supply[:2] != get_source_state_code(doc)
     )
