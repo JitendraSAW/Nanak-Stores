@@ -11,7 +11,7 @@ const PURCHASE_DOCTYPES = ["Supplier Quotation", "Purchase Order", "Purchase Rec
 	  cur_dialog.hide()
 	});
 	$(document).on('click', '.add-warehouse-check', function(){
-		console.log("this is button")
+		// console.log("this is button")
 		cur_dialog.hide()
 	  });
 	$(document).on('click', '.btn-modal-primary', function(){
@@ -326,7 +326,7 @@ frappe.ui.form.on('Nanak Pick List', {
 frappe.ui.form.on("Nanak Pick List Item", {
 	// Item popup to select
 	items_add: function (frm,cdt,cdn){
-		console.log("add item")
+		// console.log("add item")
 		frappe.call({
 			"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_credit_limit",
 			"args":{
@@ -336,10 +336,10 @@ frappe.ui.form.on("Nanak Pick List Item", {
 				
 			},
 			"callback":function(res){
-				console.log(res)
+				// console.log(res)
 				if(res.message){
 					if(res.message.allow_credit == 1){
-						console.log("Allow")
+						// console.log("Allow")
 						return
 					}
 					else if(res.message.is_group == 0){
@@ -725,7 +725,7 @@ erpnext.stock.NanakPickList = class NanakPickList extends erpnext.selling.Sellin
 
 					callback: function(r) {
 						if(!r.exc) {
-							console.log(r)
+							// console.log(r)
 							frappe.run_serially([
 								() => {
 									var d = locals[cdt][cdn];
@@ -821,7 +821,7 @@ erpnext.stock.NanakPickList = class NanakPickList extends erpnext.selling.Sellin
             },
             freeze: true,
             callback: function(res){
-                console.log(res)
+                // console.log(res)
 				if(res.message && !item.ignore_last_sales_discount){					
 					item.discount_percentage = res.message;
 					me.frm.script_manager.trigger("discount_percentage", cdt, cdn);
@@ -1444,7 +1444,7 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			debounce: 2000,
 			callback: function(r) {
-				
+				console.log(r.message)
 				if(r.message) {
 					
 					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
