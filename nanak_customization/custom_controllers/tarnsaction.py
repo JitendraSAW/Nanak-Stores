@@ -38,14 +38,12 @@ def get_gst_details(party_details, doctype, company, *, update_place_of_supply=T
         if party_gst_details:
             party_details.update(party_gst_details)
             gst_details.update(party_gst_details)
-
+    
     gst_details.place_of_supply = (
         party_details.place_of_supply
         if (not update_place_of_supply and party_details.place_of_supply)
-        else get_place_of_supply(party_details,doctype)
+        else get_place_of_supply_nanak(party_details)
     )
-
-    
 
     if is_sales_transaction:
         source_gstin = party_details.company_gstin
@@ -227,7 +225,22 @@ def get_source_state_code(doc):
     return (doc.supplier_gstin or doc.company_gstin)[:2]
 
 def get_place_of_supply_nanak(party_details):
-    billing_address = party_details.get("customer_address")
-    state_code = frappe.db.get_value("Address", billing_address, "gst_state")
-    gst_state_number = frappe.db.get_value("Address", billing_address, "gst_state_number")
-    return f"{state_code}-{gst_state_number}"
+    party_gstin = party_details.billing_address_gstin or party_details.company_gstin
+
+    if not party_gstin:
+        return
+
+    state_code = party_gstin[:2]
+    
+
+    if state := get_state(state_code):
+        return f"{state_code}-{state}"
+    
+def get_state(state_number):
+    """Get state from State Number"""
+
+    state_number = str(state_number).zfill(2)
+
+    for state, code in STATE_NUMBERS.items():
+        if code == state_number:
+            return state

@@ -30,6 +30,7 @@ app_license = "MIT"
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
 
+boot_session = "nanak_customization.nanak_customization.boot.set_bootinfo"
 # include js in doctype views
 doctype_js = {
     "Sales Order" : "custom_script/sales_order.js",

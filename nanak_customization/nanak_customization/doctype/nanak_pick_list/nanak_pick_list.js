@@ -1444,7 +1444,7 @@ frappe.ui.form.on("Nanak Pick List", {
 			},
 			debounce: 2000,
 			callback: function(r) {
-				
+				console.log(r.message)
 				if(r.message) {
 					
 					frm.set_value('taxes_and_charges', r.message.taxes_and_charges);
