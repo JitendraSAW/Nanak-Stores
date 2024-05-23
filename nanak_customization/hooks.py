@@ -35,6 +35,7 @@ boot_session = "nanak_customization.nanak_customization.boot.set_bootinfo"
 doctype_js = {
     "Sales Order" : "custom_script/sales_order.js",
 	"Quotation" : "custom_script/quotation.js",
+    "Sales Invoice" : "custom_script/sales_invoice.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
