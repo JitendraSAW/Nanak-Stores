@@ -1139,8 +1139,8 @@ erpnext.stock.NanakPickList = class NanakPickList extends erpnext.selling.Sellin
 		}
 
 		if(doc.docstatus==1 && !doc.is_return && doc.status!="Closed" && flt(doc.per_billed) < 100) {
-			frappe.db.get_value('Sales Invoice', {picklist_reference: doc.name}, 'name', (r) => {
-				if(!r.name){
+			frappe.db.get_value('Sales Invoice', {picklist_reference: doc.name}, ['name', 'docstatus'], (r) => {
+				if(!r.name || r.docstatus < 1){
 					this.frm.add_custom_button(__('Sales Invoice'), function() { me.make_sales_invoice() },
 						__('Create'));
 				}				

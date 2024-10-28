@@ -106,6 +106,7 @@ doc_events = {
 	"Sales Invoice": {
         "validate":"nanak_customization.nanak_customization.sales_invoice.validate",
 		"on_submit": "nanak_customization.nanak_customization.sales_invoice.after_submit",
+        "on_trash": "nanak_customization.nanak_customization.sales_invoice.on_trash",
 	}
 }
 
