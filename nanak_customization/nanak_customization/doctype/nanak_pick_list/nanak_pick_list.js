@@ -281,19 +281,19 @@ refresh_field("items");
 });
 
 frappe.ui.form.on('Nanak Pick List', {
-	// refresh(frm) {
-	// 	// your code here
-	// 	if(frm.doc.sales_invoice){
-	// 		frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
-	// 		.then(r => {
-	// 			if (r.message.docstatus < 2){
-	// 				cur_frm.page.btn_secondary.hide()
-	// 				// frappe.throw("Invoice Raised can not cancelled it!")
-	// 			}
-	// 		})
-	// 	}
+	refresh(frm) {
+		// your code here
+		frm.set_query('warehouse', 'items', function(doc, cdt, cdn) {
+			if (frm.doc.set_warehouse) {
+				return {
+					filters: {
+						'name': frm.doc.set_warehouse
+					}
+				}
+			}
+		});
 		
-	// },
+	},
 	// onload(frm){
 	// 	if(frm.doc.sales_invoice){
 			// frappe.db.get_value('Sales Invoice', frm.doc.sales_invoice, 'docstatus')
@@ -409,35 +409,87 @@ frappe.ui.form.on("Nanak Pick List Item", {
 		if(row.item_code){
 			frappe.db.get_value("Item", row.item_code, ["has_batch_no", "has_serial_no"])
 			.then((r) => {
-				if (r.message &&
-				(!r.message.has_batch_no && !r.message.has_serial_no)) {
+				if (r.message && (!r.message.has_batch_no && !r.message.has_serial_no)) {
+					// frappe.call({
+					// 	"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_item_stock",
+					// 	"args":{
+					// 		"item":row.item_code,
+					// 		"set_warehouse":frm.doc.set_warehouse
+					// 	},
+					// 	"callback":function(res){
+					// 		// console.log(res)
+					// 		// console.log(res.message)
+							
+					// 		html += '<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3>' + 
+					// 		'<table class="table"><tr>' +
+					// 		'<th>Warehouse</th>' +
+					// 		'<th>Warehouse Qty</th>' +
+					// 		'<th>Action</th></tr>';
+
+					// 		if(res.message != 1){
+					// 			for(var i in res.message){
+
+					// 				html +=	
+					// 					'<tr><td>' + res.message[i].warehouse + '</td>' +
+					// 					'<td>'+ res.message[i].stock +'</td>' +
+					// 					'<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="' + res.message[i].warehouse + '">Select</button></td></tr>';
+					// 			}
+					// 			html += '</table>';
+
+					// 			let d = new frappe.ui.Dialog({
+					// 				title: 'Select Warehouse',
+					// 				fields: [
+					// 					{
+					// 						label: 'Warehouse',
+					// 						fieldname: 'Warehouse',
+					// 						fieldtype: 'HTML',
+					// 						options: html
+					// 					}
+					// 				],
+					// 			});
+								
+					// 			d.show();
+					// 		}
+					// 	}
+					// })
 					frappe.call({
-						"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_item_stock",
-						"args":{
-							"item":row.item_code,
-							"set_warehouse":frm.doc.set_warehouse
+						"method": "nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_item_stock",
+						"args": {
+							"item": row.item_code,
+							"set_warehouse": frm.doc.set_warehouse
 						},
-						"callback":function(res){
-							// console.log(res)
-
-							html += '<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3>' + 
-							'<table class="table"><tr>' +
-							'<th>Warehouse</th>' +
-							'<th>Warehouse Qty</th>' +
-							'<th>Action</th></tr>';
-
-							if(res.message != 1){
-								for(var i in res.message){
-									// console.log(res.message[i].warehouse)
-									// console.log(res.message[i].stock)
-
-									html +=	
-										'<tr><td>' + res.message[i].warehouse + '</td>' +
-										'<td>'+ res.message[i].stock +'</td>' +
-										'<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="' + res.message[i].warehouse + '">Select</button></td></tr>';
+						"callback": function (res) {
+							// console.log(res);
+							// console.log(res.message);
+				
+							let html = '<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3>' +
+								'<table class="table"><tr>' +
+								'<th>Warehouse</th>' +
+								'<th>Warehouse Qty</th>';
+							
+							// Add Action column only if set_warehouse is not set
+							if (!frm.doc.set_warehouse) {
+								html += '<th>Action</th>';
+							}
+							
+							html += '</tr>';
+				
+							if (res.message != 1) {
+								for (var i in res.message) {
+									html += '<tr><td>' + res.message[i].warehouse + '</td>' +
+											'<td>' + res.message[i].stock + '</td>';
+									
+									// Add Select button only if set_warehouse is not set
+									if (!frm.doc.set_warehouse) {
+										html += '<td>' +
+												'<button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close" data="' + res.message[i].warehouse + '">Select</button>' +
+												'</td>';
+									}
+				
+									html += '</tr>';
 								}
 								html += '</table>';
-
+				
 								let d = new frappe.ui.Dialog({
 									title: 'Select Warehouse',
 									fields: [
@@ -449,65 +501,60 @@ frappe.ui.form.on("Nanak Pick List Item", {
 										}
 									],
 								});
-								
+				
 								d.show();
 							}
-							// if(res.message == 0){
-							// 	row.item_code = ""
-							// 	frm.refresh_field("items")
-							// }
 						}
-					})
+					});
 				}
 				else{
-					frappe.call({
-						"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_item_stock_bs",
-						"args":{
-							"item":row.item_code,
-							"set_warehouse":frm.doc.set_warehouse
-						},
-						"callback":function(res){
-							// console.log(res)
+					if(frm.doc.set_warehouse){
+						frappe.call({
+							"method":"nanak_customization.nanak_customization.doctype.nanak_pick_list.nanak_pick_list.check_item_stock_bs",
+							"args":{
+								"item":row.item_code,
+								"set_warehouse":frm.doc.set_warehouse
+							},
+							"callback":function(res){
+								// console.log(res)
 
-							html += '<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3>' + 
-							'<table class="table"><tr>' +
-							'<th>Warehouse</th>' +
-							'<th>Warehouse Qty</th>' +
-							// '<th>Action</th>' +
-							'</tr>';
+								html += '<h3>Item is not Available in selected Warehouse, You can pick it from below options!</h3>' + 
+								'<table class="table"><tr>' +
+								'<th>Warehouse</th>' +
+								'<th>Warehouse Qty</th>' +
+								// '<th>Action</th>' +
+								'</tr>';
 
-							if(res.message != 1){
-								for(var i in res.message){
-									// console.log(res.message[i].warehouse)
-									// console.log(res.message[i].stock)
+								if(res.message != 1){
+									for(var i in res.message){
+										// console.log(res.message[i].warehouse)
+										// console.log(res.message[i].stock)
 
-									html +=	
-										'<tr><td>' + res.message[i].warehouse + '</td>' +
-										'<td>'+ res.message[i].stock +'</td>';
-										// '<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="' + res.message[i].warehouse + '">Select</button></td></tr>';
+										html +=	
+											'<tr><td>' + res.message[i].warehouse + '</td>' +
+											'<td>'+ res.message[i].stock +'</td>';
+											// '<td><button class="btn btn-xs btn-secondary grid-add-row add-warehouse btn-modal-close " data="' + res.message[i].warehouse + '">Select</button></td></tr>';
+									}
+									html += '</table>';
+
+									let d = new frappe.ui.Dialog({
+										title: 'Select Warehouse',
+										fields: [
+											{
+												label: 'Warehouse',
+												fieldname: 'Warehouse',
+												fieldtype: 'HTML',
+												options: html
+											}
+										],
+									});
+									
+									d.show();
 								}
-								html += '</table>';
-
-								let d = new frappe.ui.Dialog({
-									title: 'Select Warehouse',
-									fields: [
-										{
-											label: 'Warehouse',
-											fieldname: 'Warehouse',
-											fieldtype: 'HTML',
-											options: html
-										}
-									],
-								});
-								
-								d.show();
 							}
-							// if(res.message == 0){
-							// 	row.item_code = ""
-							// 	frm.refresh_field("items")
-							// }
-						}
-					})
+						})
+					}
+					
 				}
 			})
 		}
@@ -1249,7 +1296,20 @@ erpnext.show_serial_batch_selector = function (frm, d, callback, on_close, show_
 		}
 	}
 
-	frappe.require("assets/erpnext/js/utils/serial_no_batch_selector.js", function() {
+	// frappe.require("assets/erpnext/js/utils/serial_no_batch_selector.js", function() {
+	// 	new erpnext.SerialNoBatchSelector({
+	// 		frm: frm,
+	// 		item: d,
+	// 		warehouse_details: {
+	// 			type: "Warehouse",
+	// 			name: warehouse
+	// 		},
+	// 		callback: callback,
+	// 		on_close: on_close
+	// 	}, show_dialog);
+	// });
+
+	frappe.require("/assets/nanak_customization/js/controllers/nanak_serial_no_batch_selector.js", function() {
 		new erpnext.SerialNoBatchSelector({
 			frm: frm,
 			item: d,
